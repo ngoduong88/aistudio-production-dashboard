@@ -654,98 +654,13 @@ export const CelestialProductionDashboard: React.FC<CelestialProductionDashboard
 
           {/* Primary Main Dashboard View */}
           {currentPage === 'dashboard' && (
-            <>
-              {/* Main Top Header Greeting & Action Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {authenticatedUser ? authenticatedUser.split('@')[0] : 'Kenneth Osborne'}
-              </h1>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Your last login: Just now from Foxconn MES Smart Factory Network.
-              </p>
-            </div>
-
-            {/* Header Right Actions matching template */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Date Filter Dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setDateFilterOpen(!dateFilterOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-[#181a22] border border-[#2e3242] hover:bg-[#20232e] text-slate-200 rounded-md transition-colors cursor-pointer"
-                >
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{selectedDateRange}</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
-                </button>
-                {dateFilterOpen && (
-                  <div className="absolute right-0 mt-1 w-40 bg-[#181a22] border border-[#2e3242] rounded-md shadow-2xl py-1 z-40 text-xs">
-                    {['Today (Live)', 'Shift 1 & 2', 'Last 7 days', 'Last 30 days'].map((range) => (
-                      <button
-                        key={range}
-                        type="button"
-                        onClick={() => { setSelectedDateRange(range); setDateFilterOpen(false); }}
-                        className="w-full text-left px-3 py-1.5 text-slate-300 hover:bg-[#20232e] hover:text-white"
-                      >
-                        {range}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Export Button */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowExportMenu(!showExportMenu)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#181a22] border border-[#2e3242] hover:bg-[#20232e] text-slate-200 rounded-md transition-colors cursor-pointer"
-                >
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Export</span>
-                </button>
-                {showExportMenu && (
-                  <div className="absolute right-0 mt-1 w-36 bg-[#181a22] border border-[#2e3242] rounded-md shadow-2xl py-1 z-40 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => { onExportExcel(); setShowExportMenu(false); }}
-                      className="w-full text-left px-3 py-1.5 text-slate-300 hover:bg-[#20232e] hover:text-white"
-                    >
-                      Export Excel (.xlsx)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { onExportCsv(); setShowExportMenu(false); }}
-                      className="w-full text-left px-3 py-1.5 text-slate-300 hover:bg-[#20232e] hover:text-white"
-                    >
-                      Export CSV (.csv)
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Info Button */}
-              <button
-                type="button"
-                onClick={() => alert(`FIH Foxconn Smart Manufacturing Telemetry\nRecords in Memory: ${records.length}\nFleet FPY Yield: ${kpis.fleetYieldRate}%\nTotal Output: ${kpis.totalActual.toLocaleString()} units`)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#181a22] border border-[#2e3242] hover:bg-[#20232e] text-slate-200 rounded-md transition-colors cursor-pointer"
-              >
-                <Info className="w-3.5 h-3.5 text-slate-400" />
-                <span>Info</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Smart Factory Manufacturing Intelligence View (Yield, Failures, Trending, Bonepile) */}
-          <CelestialSmartFactoryDashboard
-            records={records}
-            kpis={kpis}
-            onOpenChat={onOpenChat}
-            selectedDateRange={selectedDateRange}
-          />
-        </>
-      )}
+            <CelestialSmartFactoryDashboard
+              records={records}
+              kpis={kpis}
+              onOpenChat={onOpenChat}
+              selectedDateRange={selectedDateRange}
+            />
+          )}
 
           {/* ========================================================================= */}
           {/* FOOTER (Matching template bottom text) */}
