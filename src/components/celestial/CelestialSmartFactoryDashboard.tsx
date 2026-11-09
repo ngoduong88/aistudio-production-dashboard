@@ -46,14 +46,18 @@ export interface ModelProductionSummary {
   sheetFile: string;
   sheetName: string;
   dailyYieldCell?: string;
+  cosmeticYield?: number;     // e.g. 99.83% (Cosmetic FPY)
+  cosmeticCell?: string;      // e.g. 'BW67' for 4CS4, 'BW69' for CGY4 & PKK4
+  functionYield?: number;     // e.g. 98.86% (Function FPY)
+  functionCell?: string;      // e.g. 'BW68' for 4CS4, 'BW70' for CGY4 & PKK4
   cumYieldCell?: string;
-  dailyYield: number;       // e.g. 99.28%
-  yieldCUM: number;         // Cumulative e.g. 99.15%
+  dailyYield: number;       // e.g. 98.69% (Total FPY = Cosmetic * Function)
+  yieldCUM: number;         // Cumulative e.g. 98.85%
   targetYield: number;      // e.g. 98.50%
   inputQty: number;         // e.g. 4,850
   planQty: number;          // e.g. 4,800
-  plusUnits: number;        // e.g. 4,815
-  minusUnits: number;       // e.g. 35
+  plusUnits: number;        // e.g. 4,786
+  minusUnits: number;       // e.g. 64
   wipUnits: number;         // e.g. 28
   wipAgingFresh: number;    // <24h
   wipAgingTriage: number;   // 24-48h
@@ -73,14 +77,18 @@ const MODELS_DATA: ModelProductionSummary[] = [
     sheetFile: 'P26 [INTERNAL] P26 MIL 0518',
     sheetName: '4CS4',
     dailyYieldCell: 'BW69',
+    cosmeticCell: 'BW67',
+    cosmeticYield: 99.83,
+    functionCell: 'BW68',
+    functionYield: 98.86,
     cumYieldCell: 'BX69',
-    dailyYield: 99.28,
-    yieldCUM: 99.15,
+    dailyYield: 98.69,       // Cell BW69: =PRODUCT(BW67:CB68) = 99.83% * 98.86% = 98.69%
+    yieldCUM: 98.85,
     targetYield: 98.50,
     inputQty: 4850,
     planQty: 4800,
-    plusUnits: 4815,
-    minusUnits: 35,
+    plusUnits: 4786,
+    minusUnits: 64,
     wipUnits: 28,
     wipAgingFresh: 18,
     wipAgingTriage: 8,
@@ -97,8 +105,12 @@ const MODELS_DATA: ModelProductionSummary[] = [
     sheetFile: 'P26 [INTERNAL] P26 MIL 0518',
     sheetName: 'CGY4',
     dailyYieldCell: 'BW71',
+    cosmeticCell: 'BW69',
+    cosmeticYield: 99.88,
+    functionCell: 'BW70',
+    functionYield: 98.52,
     cumYieldCell: 'BX71',
-    dailyYield: 98.40,
+    dailyYield: 98.40,       // Cell BW71 (Cosmetic BW69, Function BW70)
     yieldCUM: 97.45,
     targetYield: 98.50,
     inputQty: 3200,
@@ -121,8 +133,12 @@ const MODELS_DATA: ModelProductionSummary[] = [
     sheetFile: 'P26 [INTERNAL] P26 MIL 0518',
     sheetName: 'PKK4',
     dailyYieldCell: 'BW71',
+    cosmeticCell: 'BW69',
+    cosmeticYield: 99.90,
+    functionCell: 'BW70',
+    functionYield: 98.60,
     cumYieldCell: 'BX71',
-    dailyYield: 98.50,
+    dailyYield: 98.50,       // Cell BW71 (Cosmetic BW69, Function BW70)
     yieldCUM: 98.12,
     targetYield: 98.50,
     inputQty: 2100,
@@ -220,7 +236,7 @@ const YIELD_TREND_DAYS = [
   { date: '8/5', yield4CS4: 98.9, yieldCGY4: 96.8, yieldPKK4: 97.8, yieldWGO5: 97.4, target: 98.5, plus: 1740, minus: 41 },
   { date: '8/6', yield4CS4: 99.3, yieldCGY4: 97.6, yieldPKK4: 98.2, yieldWGO5: 97.6, target: 98.5, plus: 1810, minus: 29 },
   { date: '8/7', yield4CS4: 99.2, yieldCGY4: 98.1, yieldPKK4: 98.0, yieldWGO5: 97.7, target: 98.5, plus: 1790, minus: 34 },
-  { date: '8/8', yield4CS4: 99.4, yieldCGY4: 98.4, yieldPKK4: 98.5, yieldWGO5: 97.8, target: 98.5, plus: 1850, minus: 26 },
+  { date: '8/8', yield4CS4: 98.69, yieldCGY4: 98.4, yieldPKK4: 98.5, yieldWGO5: 97.8, target: 98.5, plus: 1850, minus: 26 },
 ];
 
 // Top Defect Pareto Dataset
@@ -450,7 +466,12 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                       </span>
                     </h3>
                     <p className="text-xs text-slate-400">
-                      Mapped Source: <strong className="text-slate-300 font-mono">{singleModelData.sheetName}!{singleModelData.dailyYieldCell || 'Yield'}</strong> (CUM: {singleModelData.cumYieldCell || 'CUM'})
+                      Mapped Source: <strong className="text-slate-300 font-mono">{singleModelData.sheetName}!{singleModelData.dailyYieldCell || 'Yield'}</strong>
+                      {singleModelData.cosmeticCell && (
+                        <span className="ml-2 text-slate-400 font-mono text-[11px]">
+                          (Cosmetic: <span className="text-emerald-400 font-bold">{singleModelData.cosmeticCell}</span>, Function: <span className="text-blue-400 font-bold">{singleModelData.functionCell}</span>)
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -471,24 +492,47 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                 <div className="p-4 rounded-xl bg-[#12141c] border border-slate-700/70 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-                      <span className="font-bold text-slate-200">Daily Yield</span>
+                      <span className="font-bold text-slate-200">Daily FPY (Total)</span>
                       <span className="text-emerald-400 font-bold font-mono">
                         Target ≥ {singleModelData.targetYield}%
                       </span>
                     </div>
-                    <div className="text-3xl font-black text-white tracking-tight">
-                      {singleModelData.dailyYield}%
+                    <div className="flex items-baseline gap-3">
+                      <div className="text-3xl font-black text-white tracking-tight">
+                        {singleModelData.dailyYield}%
+                      </div>
+                      {singleModelData.dailyYieldCell && (
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold">
+                          Cell {singleModelData.dailyYieldCell}
+                        </span>
+                      )}
                     </div>
                   </div>
 
+                  {/* Cosmetic & Function Yield Breakdown if available */}
+                  {singleModelData.cosmeticYield !== undefined && singleModelData.functionYield !== undefined && (
+                    <div className="my-2.5 p-2 rounded-lg bg-[#181a24] border border-slate-700/60 grid grid-cols-2 gap-2 text-xs font-mono">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">Cosmetic ({singleModelData.cosmeticCell}):</span>
+                        <span className="font-bold text-emerald-400">{singleModelData.cosmeticYield}%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">Function ({singleModelData.functionCell}):</span>
+                        <span className="font-bold text-blue-400">{singleModelData.functionYield}%</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Metadata below Yield: CUM, Target delta, Input Qty */}
-                  <div className="mt-3 pt-3 border-t border-slate-800 space-y-1 font-mono text-xs">
+                  <div className="mt-2 pt-2 border-t border-slate-800 space-y-1 font-mono text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">Yield CUM:</span>
                       <span className="font-bold text-blue-300">{singleModelData.yieldCUM}%</span>
                       <span className="text-slate-600">|</span>
-                      <span className="text-slate-400">Delta:</span>
-                      <span className="text-emerald-400 font-bold">+{(singleModelData.dailyYield - singleModelData.targetYield).toFixed(2)}%</span>
+                      <span className="text-slate-400">Delta vs Target:</span>
+                      <span className={`font-bold ${singleModelData.dailyYield >= singleModelData.targetYield ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {singleModelData.dailyYield >= singleModelData.targetYield ? '+' : ''}{(singleModelData.dailyYield - singleModelData.targetYield).toFixed(2)}%
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
                       <span>Input Qty: <strong className="text-slate-200">{singleModelData.inputQty.toLocaleString()}</strong></span>
@@ -559,13 +603,26 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                     {/* Block 1: Yield */}
                     <div className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800 flex flex-col justify-between">
                       <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Daily Yield</span>
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                          <span>Daily FPY</span>
+                          {m.dailyYieldCell && (
+                            <span className="font-mono text-[9px] text-blue-400 bg-blue-500/10 px-1 py-0.2 rounded font-bold">
+                              {m.dailyYieldCell}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xl font-black text-white tracking-tight mt-0.5">
                           {m.dailyYield}%
                         </div>
                       </div>
-                      {/* Subtext below Yield: CUM, Target, Input */}
-                      <div className="mt-2 pt-1.5 border-t border-slate-800/80 space-y-0.5 text-[9.5px] font-mono text-slate-400">
+                      {/* Subtext below Yield: Cosmetic & Function, CUM, Target, Input */}
+                      <div className="mt-2 pt-1.5 border-t border-slate-800/80 space-y-1 text-[9.5px] font-mono text-slate-400">
+                        {m.cosmeticYield !== undefined && m.functionYield !== undefined && (
+                          <div className="flex items-center justify-between text-[9px] text-slate-300 pb-1 border-b border-slate-800/60">
+                            <span>Cos: <strong className="text-emerald-400">{m.cosmeticYield}%</strong> <span className="text-slate-500 text-[8px]">({m.cosmeticCell})</span></span>
+                            <span>Func: <strong className="text-blue-400">{m.functionYield}%</strong> <span className="text-slate-500 text-[8px]">({m.functionCell})</span></span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between">
                           <span>CUM: <strong className="text-blue-300">{m.yieldCUM}%</strong></span>
                           <span>Tgt: <strong className="text-slate-300">{m.targetYield}%</strong></span>
@@ -644,7 +701,12 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                     <span className="font-bold text-white font-mono">{m.model}</span>
                     <span className="text-[10px] text-slate-400">({m.project} · {m.stage})</span>
                   </div>
-                  <div className="flex items-center gap-3.5 font-mono">
+                  <div className="flex items-center gap-3 font-mono">
+                    {m.cosmeticYield !== undefined && m.functionYield !== undefined && (
+                      <span className="text-slate-400 text-[10px] hidden sm:inline">
+                        Cos: <strong className="text-emerald-400">{m.cosmeticYield}%</strong> | Func: <strong className="text-blue-400">{m.functionYield}%</strong>
+                      </span>
+                    )}
                     <span className="text-slate-300">
                       Daily: <strong className="text-white">{m.dailyYield}%</strong>
                     </span>

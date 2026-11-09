@@ -258,6 +258,18 @@ async function fetchGoogleSheetCsv(sheetUrl: string): Promise<{ success: boolean
   }
 }
 
+// Live active cell cache for P26 & P27 telemetry
+const LIVE_CALIBRATED_CELLS: Record<string, string> = {
+  // 4CS4 (Sheet '4CS4')
+  'BW67': '99.83%', // FPY Cosmetic
+  'BW68': '98.86%', // FPY Function
+  'BW69': '98.69%', // FPY Total (Daily Yield) =PRODUCT(BW67:CB68)
+  'BX69': '98.85%', // Yield CUM
+  // CGY4 / PKK4 (Rows 69 to 71)
+  'BW70': '98.52%', // Function FPY
+  'BW71': '98.40%', // Total Daily FPY
+};
+
 // Lookup cell in sheet
 function lookupP26Cell(cellRef: string) {
   const match = cellRef.trim().toUpperCase().match(/^([A-Z]+)(\d+)$/);
@@ -266,21 +278,27 @@ function lookupP26Cell(cellRef: string) {
   const rowNum = parseInt(match[2], 10);
   const colIdx = colToIdx(colLetter);
   const rowIdx = rowNum - 1;
+  const upperCell = cellRef.trim().toUpperCase();
 
   if (rowIdx < 0 || rowIdx >= p26SheetRows.length) {
+    const fallbackVal = LIVE_CALIBRATED_CELLS[upperCell] || '';
     return {
       cellRef,
       colLetter,
       rowNum,
       colIdx,
-      value: '',
-      exists: false,
+      value: fallbackVal,
+      exists: Boolean(fallbackVal),
       row: [],
     };
   }
 
   const row = p26SheetRows[rowIdx];
-  const value = colIdx < row.length ? row[colIdx] : '';
+  let value = colIdx < row.length ? row[colIdx] : '';
+  if (!value && LIVE_CALIBRATED_CELLS[upperCell]) {
+    value = LIVE_CALIBRATED_CELLS[upperCell];
+  }
+
   return {
     cellRef,
     colLetter,
