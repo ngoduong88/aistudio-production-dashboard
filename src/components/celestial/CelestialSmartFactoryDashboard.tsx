@@ -41,7 +41,12 @@ interface CelestialSmartFactoryDashboardProps {
 export interface ModelProductionSummary {
   model: string;
   fullName: string;
-  stage: 'MP' | 'Ramp' | 'Pilot' | 'Sustaining';
+  project: 'P26' | 'P27';
+  stage: 'MP' | 'EVT' | 'DVT' | 'Pilot' | 'Sustaining';
+  sheetFile: string;
+  sheetName: string;
+  dailyYieldCell?: string;
+  cumYieldCell?: string;
   dailyYield: number;       // e.g. 99.28%
   yieldCUM: number;         // Cumulative e.g. 99.15%
   targetYield: number;      // e.g. 98.50%
@@ -55,16 +60,20 @@ export interface ModelProductionSummary {
   wipAgingEscalated: number;// >48h
   status: 'Optimal' | 'Warning' | 'Alert';
   topDefect: string;
-  sparkline: number[];      // 7-day trend values
   color: string;            // Accent color
 }
 
-// 6 Active Production Models Running Concurrently
+// 6 Active Production Models Running Concurrently (P26 MP & P27 EVT)
 const MODELS_DATA: ModelProductionSummary[] = [
   {
     model: '4CS4',
-    fullName: '4CS4 (Mass Production)',
+    fullName: '4CS4 (P26 MP)',
+    project: 'P26',
     stage: 'MP',
+    sheetFile: 'P26 [INTERNAL] P26 MIL 0518',
+    sheetName: '4CS4',
+    dailyYieldCell: 'BW69',
+    cumYieldCell: 'BX69',
     dailyYield: 99.28,
     yieldCUM: 99.15,
     targetYield: 98.50,
@@ -78,13 +87,17 @@ const MODELS_DATA: ModelProductionSummary[] = [
     wipAgingEscalated: 2,
     status: 'Optimal',
     topDefect: 'Cable Flam Flex torn (14 units)',
-    sparkline: [98.8, 99.0, 99.1, 98.9, 99.3, 99.2, 99.4],
     color: '#3b82f6',
   },
   {
     model: 'CGY4',
-    fullName: 'CGY4 (Ramp-up Line)',
-    stage: 'Ramp',
+    fullName: 'CGY4 (P26 MP)',
+    project: 'P26',
+    stage: 'MP',
+    sheetFile: 'P26 [INTERNAL] P26 MIL 0518',
+    sheetName: 'CGY4',
+    dailyYieldCell: 'BW71',
+    cumYieldCell: 'BX71',
     dailyYield: 98.40,
     yieldCUM: 97.45,
     targetYield: 98.50,
@@ -98,13 +111,17 @@ const MODELS_DATA: ModelProductionSummary[] = [
     wipAgingEscalated: 8,
     status: 'Warning',
     topDefect: 'Prox_precal: TEST_TIMEOUT (24 units)',
-    sparkline: [95.8, 96.2, 96.0, 95.4, 96.8, 97.6, 98.4],
     color: '#f59e0b',
   },
   {
     model: 'PKK4',
-    fullName: 'PKK4 (NPI Pilot)',
-    stage: 'Pilot',
+    fullName: 'PKK4 (P26 MP)',
+    project: 'P26',
+    stage: 'MP',
+    sheetFile: 'P26 [INTERNAL] P26 MIL 0518',
+    sheetName: 'PKK4',
+    dailyYieldCell: 'BW71',
+    cumYieldCell: 'BX71',
     dailyYield: 98.50,
     yieldCUM: 98.12,
     targetYield: 98.50,
@@ -118,81 +135,92 @@ const MODELS_DATA: ModelProductionSummary[] = [
     wipAgingEscalated: 6,
     status: 'Optimal',
     topDefect: 'Foreign object (FOF) on PSA (18 units)',
-    sparkline: [97.1, 97.4, 97.0, 97.5, 97.8, 98.2, 98.5],
     color: '#a855f7',
   },
   {
-    model: 'P25',
-    fullName: 'P25 (Sustaining Run)',
-    stage: 'Sustaining',
-    dailyYield: 99.45,
-    yieldCUM: 99.30,
-    targetYield: 98.50,
-    inputQty: 2400,
-    planQty: 2400,
-    plusUnits: 2387,
-    minusUnits: 13,
-    wipUnits: 16,
+    model: 'WGO5',
+    fullName: 'WGO5 (P27 EVT)',
+    project: 'P27',
+    stage: 'EVT',
+    sheetFile: 'P27 EVT Tracking',
+    sheetName: 'PPT',
+    dailyYieldCell: 'V55',
+    cumYieldCell: 'L66',
+    dailyYield: 97.80,
+    yieldCUM: 97.20,
+    targetYield: 97.00,
+    inputQty: 850,
+    planQty: 800,
+    plusUnits: 831,
+    minusUnits: 19,
+    wipUnits: 18,
     wipAgingFresh: 12,
     wipAgingTriage: 4,
-    wipAgingEscalated: 0,
+    wipAgingEscalated: 2,
     status: 'Optimal',
-    topDefect: 'Connector deformation J25002 (5 units)',
-    sparkline: [99.1, 99.2, 99.3, 99.4, 99.3, 99.5, 99.5],
+    topDefect: 'EVT Solder Bridge U1402 (6 units)',
     color: '#10b981',
   },
   {
-    model: 'MIL',
-    fullName: 'MIL (Rugged Spec)',
-    stage: 'MP',
-    dailyYield: 98.15,
-    yieldCUM: 98.02,
-    targetYield: 98.00,
-    inputQty: 1100,
-    planQty: 1000,
-    plusUnits: 1080,
-    minusUnits: 20,
-    wipUnits: 12,
-    wipAgingFresh: 8,
+    model: 'ASK5',
+    fullName: 'ASK5 (P27 EVT)',
+    project: 'P27',
+    stage: 'EVT',
+    sheetFile: 'P27 EVT Tracking',
+    sheetName: 'PPT',
+    dailyYieldCell: 'V60',
+    cumYieldCell: 'L70',
+    dailyYield: 98.10,
+    yieldCUM: 97.85,
+    targetYield: 97.00,
+    inputQty: 650,
+    planQty: 600,
+    plusUnits: 638,
+    minusUnits: 12,
+    wipUnits: 10,
+    wipAgingFresh: 7,
     wipAgingTriage: 3,
-    wipAgingEscalated: 1,
+    wipAgingEscalated: 0,
     status: 'Optimal',
-    topDefect: 'RF Cal Attenuation (8 units)',
-    sparkline: [97.8, 97.9, 98.0, 98.2, 98.0, 98.1, 98.2],
+    topDefect: 'RF Chamber Attenuation (4 units)',
     color: '#ec4899',
   },
   {
-    model: '4CS3',
-    fullName: '4CS3 (Legacy Sustaining)',
-    stage: 'Sustaining',
-    dailyYield: 99.60,
-    yieldCUM: 99.50,
-    targetYield: 98.50,
-    inputQty: 600,
-    planQty: 600,
-    plusUnits: 598,
-    minusUnits: 2,
-    wipUnits: 6,
-    wipAgingFresh: 5,
-    wipAgingTriage: 1,
-    wipAgingEscalated: 0,
-    status: 'Optimal',
-    topDefect: 'Retest NTF Pass (2 units)',
-    sparkline: [99.4, 99.5, 99.5, 99.6, 99.5, 99.6, 99.6],
+    model: 'KSH5',
+    fullName: 'KSH5 (P27 EVT)',
+    project: 'P27',
+    stage: 'EVT',
+    sheetFile: 'P27 EVT Tracking',
+    sheetName: 'PPT',
+    dailyYieldCell: 'V65',
+    cumYieldCell: 'L75',
+    dailyYield: 96.90,
+    yieldCUM: 96.50,
+    targetYield: 97.00,
+    inputQty: 500,
+    planQty: 500,
+    plusUnits: 485,
+    minusUnits: 15,
+    wipUnits: 14,
+    wipAgingFresh: 9,
+    wipAgingTriage: 4,
+    wipAgingEscalated: 1,
+    status: 'Warning',
+    topDefect: 'Sensor Gasket Pressure Leak (5 units)',
     color: '#06b6d4',
   },
 ];
 
 // Historical Run Chart Data (8/1 to 8/8)
 const YIELD_TREND_DAYS = [
-  { date: '8/1', yield4CS4: 98.4, yieldCGY4: 95.8, yieldPKK4: 97.1, target: 98.5, plus: 1680, minus: 52 },
-  { date: '8/2', yield4CS4: 98.8, yieldCGY4: 96.2, yieldPKK4: 97.4, target: 98.5, plus: 1720, minus: 44 },
-  { date: '8/3', yield4CS4: 99.0, yieldCGY4: 96.0, yieldPKK4: 97.0, target: 98.5, plus: 1750, minus: 38 },
-  { date: '8/4', yield4CS4: 99.1, yieldCGY4: 95.4, yieldPKK4: 97.5, target: 98.5, plus: 1690, minus: 62 },
-  { date: '8/5', yield4CS4: 98.9, yieldCGY4: 96.8, yieldPKK4: 97.8, target: 98.5, plus: 1740, minus: 41 },
-  { date: '8/6', yield4CS4: 99.3, yieldCGY4: 97.6, yieldPKK4: 98.2, target: 98.5, plus: 1810, minus: 29 },
-  { date: '8/7', yield4CS4: 99.2, yieldCGY4: 98.1, yieldPKK4: 98.0, target: 98.5, plus: 1790, minus: 34 },
-  { date: '8/8', yield4CS4: 99.4, yieldCGY4: 98.4, yieldPKK4: 98.5, target: 98.5, plus: 1850, minus: 26 },
+  { date: '8/1', yield4CS4: 98.4, yieldCGY4: 95.8, yieldPKK4: 97.1, yieldWGO5: 96.8, target: 98.5, plus: 1680, minus: 52 },
+  { date: '8/2', yield4CS4: 98.8, yieldCGY4: 96.2, yieldPKK4: 97.4, yieldWGO5: 97.0, target: 98.5, plus: 1720, minus: 44 },
+  { date: '8/3', yield4CS4: 99.0, yieldCGY4: 96.0, yieldPKK4: 97.0, yieldWGO5: 97.2, target: 98.5, plus: 1750, minus: 38 },
+  { date: '8/4', yield4CS4: 99.1, yieldCGY4: 95.4, yieldPKK4: 97.5, yieldWGO5: 96.9, target: 98.5, plus: 1690, minus: 62 },
+  { date: '8/5', yield4CS4: 98.9, yieldCGY4: 96.8, yieldPKK4: 97.8, yieldWGO5: 97.4, target: 98.5, plus: 1740, minus: 41 },
+  { date: '8/6', yield4CS4: 99.3, yieldCGY4: 97.6, yieldPKK4: 98.2, yieldWGO5: 97.6, target: 98.5, plus: 1810, minus: 29 },
+  { date: '8/7', yield4CS4: 99.2, yieldCGY4: 98.1, yieldPKK4: 98.0, yieldWGO5: 97.7, target: 98.5, plus: 1790, minus: 34 },
+  { date: '8/8', yield4CS4: 99.4, yieldCGY4: 98.4, yieldPKK4: 98.5, yieldWGO5: 97.8, target: 98.5, plus: 1850, minus: 26 },
 ];
 
 // Top Defect Pareto Dataset
@@ -238,8 +266,9 @@ const BONEPILE_DATA: BonepileRecord[] = [
   { dsn: '6A260DLKY0004R', model: '4CS4', station: 'FATP-QT-1M', defectDesc: 'Connector B2B Flam Flex on J25002 was deformed', category: 'Process', dri: 'Tuyen', agingHours: 6, status: 'Under Repair', isLocked: false },
   { dsn: '6A230DLKY00478', model: '4CS4', station: 'FATP-QT-1M', defectDesc: 'Cable Flam Flex on BG was torn', category: 'Process', dri: 'Duc', agingHours: 32, status: 'Pending FA', isLocked: false },
   { dsn: '6A210DLCG0019A', model: 'CGY4', station: 'SMT-SPI-02', defectDesc: 'Solder volume insufficient on U2301 BGA', category: 'Equipment', dri: 'Quang', agingHours: 192, status: 'Quality Locked', isLocked: true, lockReason: 'Line Stencil Inspection Lock' },
-  { dsn: '6A220DLP20014B', model: 'P25', station: 'FATP-DS-COMBO', defectDesc: 'Touch calibration offset > 1.2mm', category: 'Equipment', dri: 'Martin', agingHours: 12, status: 'Under Repair', isLocked: false },
-  { dsn: '6A250DLML0008E', model: 'MIL', station: 'FATP-AIRLK-WT', defectDesc: 'Pressure seal leak on gasket B', category: 'Process', dri: 'Duc', agingHours: 44, status: 'Awaiting Parts', isLocked: false },
+  { dsn: '7A110DLWG0004A', model: 'WGO5', station: 'EVT-PRECAL-01', defectDesc: 'EVT Pre-screening Solder Bridge U1402', category: 'Process', dri: 'Martin', agingHours: 16, status: 'Under Repair', isLocked: false },
+  { dsn: '7A120DLAS0002F', model: 'ASK5', station: 'EVT-RF-01', defectDesc: 'RF Chamber Attenuation offset > 2.4dB', category: 'Equipment', dri: 'Quang', agingHours: 22, status: 'Pending FA', isLocked: false },
+  { dsn: '7A130DLKS0007B', model: 'KSH5', station: 'EVT-AIRLK-01', defectDesc: 'Sensor Gasket Pressure Leak 1400Pa', category: 'Process', dri: 'Duc', agingHours: 36, status: 'Awaiting Parts', isLocked: false },
 ];
 
 export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashboardProps> = ({
@@ -323,7 +352,7 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Display individual cards for each model combining Yield, CUM, Input, WIP"
+              title="Display individual cards for each model combining Yield & WIP"
             >
               <Grid className="w-3 h-3" />
               <span>By Model</span>
@@ -336,16 +365,16 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Display cards grouped by category across all models (All Yields, All WIPs...)"
+              title="Display cards grouped by category across all models"
             >
               <ListFilter className="w-3 h-3" />
               <span>By Category</span>
             </button>
           </div>
 
-          {/* Model Selector Pills (Supports 6+ models) */}
+          {/* Model Selector Pills (6 Active Models: P26 & P27) */}
           <div className="flex items-center gap-0.5 p-0.5 bg-[#12141c] border border-slate-700/80 rounded-lg font-semibold overflow-x-auto scrollbar-none">
-            {['ALL', '4CS4', 'CGY4', 'PKK4', 'P25', 'MIL', '4CS3'].map((m) => (
+            {['ALL', '4CS4', 'CGY4', 'PKK4', 'WGO5', 'ASK5', 'KSH5'].map((m) => (
               <button
                 key={m}
                 type="button"
@@ -382,7 +411,7 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
           {/* AI Insights Action Button */}
           <button
             type="button"
-            onClick={() => onOpenChat('Provide a brief comparative status of all active models: 4CS4, CGY4, PKK4, P25, MIL, and 4CS3.')}
+            onClick={() => onOpenChat('Summarize yield and WIP across all 6 models: 4CS4, CGY4, PKK4, WGO5, ASK5, and KSH5.')}
             className="px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg text-[10.5px] font-bold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
           >
             <Sparkles className="w-3 h-3 text-amber-300" />
@@ -396,7 +425,7 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
       {/* ========================================================================= */}
 
       {/* ------------------------------------------------------------------------- */}
-      {/* VIEW MODE 1: BY MODEL (Each model has its own card combining Yield, CUM, Input, WIP) */}
+      {/* VIEW MODE 1: BY MODEL (Only Yield & WIP blocks per model)                 */}
       {/* ------------------------------------------------------------------------- */}
       {viewMode === 'byModel' && (
         <>
@@ -417,18 +446,18 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                     <h3 className="text-base font-black text-white flex items-center gap-2">
                       <span>Model {singleModelData.fullName}</span>
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                        {singleModelData.stage}
+                        {singleModelData.project} · {singleModelData.stage}
                       </span>
                     </h3>
                     <p className="text-xs text-slate-400">
-                      Target: ≥ {singleModelData.targetYield}% · Daily Yield vs Cumulative Trend
+                      Mapped Source: <strong className="text-slate-300 font-mono">{singleModelData.sheetName}!{singleModelData.dailyYieldCell || 'Yield'}</strong> (CUM: {singleModelData.cumYieldCell || 'CUM'})
                     </p>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => onOpenChat(`Analyze model ${singleModelData.model} yield, failure breakdown, and bonepile status.`)}
+                  onClick={() => onOpenChat(`Analyze model ${singleModelData.model} yield and WIP status from sheet ${singleModelData.sheetName}.`)}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-sm w-fit"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
@@ -436,85 +465,74 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                 </button>
               </div>
 
-              {/* 4 In-Depth Key Metric Boxes */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 text-xs">
-                {/* Box 1: Yield vs Target */}
-                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span>Shift Yield</span>
-                    <span className="text-emerald-400 font-bold">Goal {singleModelData.targetYield}%</span>
+              {/* 2 Clean Focal Blocks: Yield & WIP */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                {/* Block 1: Yield */}
+                <div className="p-4 rounded-xl bg-[#12141c] border border-slate-700/70 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+                      <span className="font-bold text-slate-200">Daily Yield</span>
+                      <span className="text-emerald-400 font-bold font-mono">
+                        Target ≥ {singleModelData.targetYield}%
+                      </span>
+                    </div>
+                    <div className="text-3xl font-black text-white tracking-tight">
+                      {singleModelData.dailyYield}%
+                    </div>
                   </div>
-                  <div className="text-2xl font-black text-white mt-1">
-                    {singleModelData.dailyYield}%
-                  </div>
-                  <div className="text-[10px] text-emerald-400 font-semibold mt-0.5">
-                    +{(singleModelData.dailyYield - singleModelData.targetYield).toFixed(2)}% vs Target
+
+                  {/* Metadata below Yield: CUM, Target delta, Input Qty */}
+                  <div className="mt-3 pt-3 border-t border-slate-800 space-y-1 font-mono text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Yield CUM:</span>
+                      <span className="font-bold text-blue-300">{singleModelData.yieldCUM}%</span>
+                      <span className="text-slate-600">|</span>
+                      <span className="text-slate-400">Delta:</span>
+                      <span className="text-emerald-400 font-bold">+{(singleModelData.dailyYield - singleModelData.targetYield).toFixed(2)}%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                      <span>Input Qty: <strong className="text-slate-200">{singleModelData.inputQty.toLocaleString()}</strong></span>
+                      <span>Pass: <strong className="text-emerald-400">{singleModelData.plusUnits}</strong> | Fail: <strong className="text-rose-400">{singleModelData.minusUnits}</strong></span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Box 2: Yield CUM */}
-                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span>Yield CUM (Total)</span>
-                    <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
+                {/* Block 2: WIP / Bonepile */}
+                <div className="p-4 rounded-xl bg-[#12141c] border border-slate-700/70 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+                      <span className="font-bold text-slate-200">WIP / Bonepile</span>
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    </div>
+                    <div className="text-3xl font-black text-amber-400 tracking-tight">
+                      {singleModelData.wipUnits} <span className="text-sm font-semibold text-slate-400">units</span>
+                    </div>
                   </div>
-                  <div className="text-2xl font-black text-blue-300 mt-1">
-                    {singleModelData.yieldCUM}%
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">
-                    Cumulative sustaining yield
+
+                  {/* Small Aging breakdown below WIP */}
+                  <div className="mt-3 pt-3 border-t border-slate-800 space-y-1 font-mono text-xs">
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>&lt;24h (Fresh): <strong className="text-emerald-400">{singleModelData.wipAgingFresh}</strong></span>
+                      <span>24–48h: <strong className="text-blue-400">{singleModelData.wipAgingTriage}</strong></span>
+                      <span>&gt;48h: <strong className="text-rose-400">{singleModelData.wipAgingEscalated}</strong></span>
+                    </div>
+                    <div className="text-[11px] text-slate-400 pt-0.5">
+                      Top failure: <strong className="text-slate-200">{singleModelData.topDefect}</strong>
+                    </div>
                   </div>
                 </div>
-
-                {/* Box 3: Input & Output */}
-                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span>Input Qty</span>
-                    <span className="text-slate-300 font-mono">Plan: {singleModelData.planQty}</span>
-                  </div>
-                  <div className="text-2xl font-black text-white mt-1">
-                    {singleModelData.inputQty.toLocaleString()}
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
-                    Pass: <strong className="text-emerald-400">{singleModelData.plusUnits}</strong> | Fail: <strong className="text-rose-400">{singleModelData.minusUnits}</strong>
-                  </div>
-                </div>
-
-                {/* Box 4: WIP & Bonepile */}
-                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span>WIP / Bonepile</span>
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                  </div>
-                  <div className="text-2xl font-black text-amber-400 mt-1">
-                    {singleModelData.wipUnits} units
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
-                    &lt;24h: {singleModelData.wipAgingFresh} | 24-48h: {singleModelData.wipAgingTriage} | &gt;48h: {singleModelData.wipAgingEscalated}
-                  </div>
-                </div>
-              </div>
-
-              {/* Notice pill */}
-              <div className="p-2.5 rounded-xl bg-[#12141c] border border-slate-700/60 flex items-center justify-between text-xs">
-                <span className="text-slate-400">
-                  Top Failure for {singleModelData.model}: <strong className="text-white font-medium">{singleModelData.topDefect}</strong>
-                </span>
-                <span className="text-[10.5px] text-slate-400 font-mono">
-                  Displaying station data & bonepile records filtered to <strong>{singleModelData.model}</strong> below ↓
-                </span>
               </div>
             </div>
           ) : (
-            /* Multi-Model Grid (6+ Models Cards Side-by-Side) */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            /* Multi-Model Grid (6 Active Models Side-by-Side: P26 & P27) */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {MODELS_DATA.map((m) => (
                 <div
                   key={m.model}
                   onClick={() => setSelectedModel(m.model)}
-                  className="bg-[#181a24] border border-slate-700/60 hover:border-blue-500/70 rounded-xl p-4 shadow-lg flex flex-col justify-between transition-all duration-200 cursor-pointer group hover:scale-[1.015]"
+                  className="bg-[#181a24] border border-slate-700/60 hover:border-blue-500/70 rounded-xl p-3.5 shadow-lg flex flex-col justify-between transition-all duration-200 cursor-pointer group hover:scale-[1.01]"
                 >
-                  {/* Card Header: Model Name & Stage */}
+                  {/* Card Header: Model Name & Project Badge */}
                   <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
                     <div className="flex items-center gap-2">
                       <span
@@ -532,59 +550,58 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
                           : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                       }`}
                     >
-                      {m.status}
+                      {m.stage}
                     </span>
                   </div>
 
-                  {/* 4 Combined Metrics (Yield, CUM, Input, WIP) */}
-                  <div className="grid grid-cols-2 gap-2.5 my-3 text-xs">
-                    {/* Shift Yield */}
-                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block">Shift Yield</span>
-                      <div className="text-base font-black text-white mt-0.5">
-                        {m.dailyYield}%
+                  {/* ONLY 2 BLOCKS: Yield & WIP (CUM, Input, Target as small text below Yield) */}
+                  <div className="grid grid-cols-2 gap-2.5 my-2.5 text-xs">
+                    {/* Block 1: Yield */}
+                    <div className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Daily Yield</span>
+                        <div className="text-xl font-black text-white tracking-tight mt-0.5">
+                          {m.dailyYield}%
+                        </div>
                       </div>
-                      <span className="text-[9.5px] text-slate-400 font-mono">
-                        Target {m.targetYield}%
-                      </span>
+                      {/* Subtext below Yield: CUM, Target, Input */}
+                      <div className="mt-2 pt-1.5 border-t border-slate-800/80 space-y-0.5 text-[9.5px] font-mono text-slate-400">
+                        <div className="flex items-center justify-between">
+                          <span>CUM: <strong className="text-blue-300">{m.yieldCUM}%</strong></span>
+                          <span>Tgt: <strong className="text-slate-300">{m.targetYield}%</strong></span>
+                        </div>
+                        <div className="truncate text-slate-400 pt-0.5">
+                          Input: <strong className="text-slate-200">{m.inputQty.toLocaleString()}</strong> ({m.plusUnits}P / {m.minusUnits}F)
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Yield CUM */}
-                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block">Yield CUM</span>
-                      <div className="text-base font-black text-blue-300 mt-0.5">
-                        {m.yieldCUM}%
+                    {/* Block 2: WIP / Bonepile */}
+                    <div className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                          <span>WIP / Bonepile</span>
+                          <AlertTriangle className="w-2.5 h-2.5 text-amber-400" />
+                        </div>
+                        <div className="text-xl font-black text-amber-400 tracking-tight mt-0.5 font-mono">
+                          {m.wipUnits} <span className="text-[10px] font-normal text-slate-400">units</span>
+                        </div>
                       </div>
-                      <span className="text-[9.5px] text-emerald-400 font-semibold">
-                        Sustaining
-                      </span>
-                    </div>
-
-                    {/* Input Qty */}
-                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block">Input Qty</span>
-                      <div className="text-base font-black text-slate-100 mt-0.5 font-mono">
-                        {m.inputQty.toLocaleString()}
+                      {/* Subtext below WIP: Aging breakdown */}
+                      <div className="mt-2 pt-1.5 border-t border-slate-800/80 space-y-0.5 text-[9.5px] font-mono text-slate-400">
+                        <div className="flex items-center justify-between">
+                          <span>&lt;24h: <strong className="text-emerald-400">{m.wipAgingFresh}</strong></span>
+                          <span>24-48h: <strong className="text-blue-400">{m.wipAgingTriage}</strong></span>
+                        </div>
+                        <div className="pt-0.5">
+                          &gt;48h: <strong className={m.wipAgingEscalated > 0 ? 'text-rose-400' : 'text-slate-400'}>{m.wipAgingEscalated} units</strong>
+                        </div>
                       </div>
-                      <span className="text-[9.5px] text-slate-400 font-mono">
-                        Pass: {m.plusUnits} | Fail: {m.minusUnits}
-                      </span>
-                    </div>
-
-                    {/* WIP / Bonepile */}
-                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block">WIP / Bonepile</span>
-                      <div className="text-base font-black text-amber-400 mt-0.5 font-mono">
-                        {m.wipUnits} units
-                      </div>
-                      <span className="text-[9.5px] text-slate-400 font-mono">
-                        &lt;24h: {m.wipAgingFresh} · &gt;48h: {m.wipAgingEscalated}
-                      </span>
                     </div>
                   </div>
 
-                  {/* Top Defect & Mini Action */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
+                  {/* Card Footer: Top Defect & Zoom */}
+                  <div className="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
                     <span className="text-slate-400 truncate max-w-[200px]" title={m.topDefect}>
                       Top: <strong className="text-slate-300">{m.topDefect}</strong>
                     </span>
@@ -619,17 +636,17 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
               </span>
             </div>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-2 text-xs">
               {MODELS_DATA.map((m) => (
-                <div key={m.model} className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800 flex items-center justify-between">
+                <div key={m.model} className="p-2 rounded-lg bg-[#12141c] border border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
                     <span className="font-bold text-white font-mono">{m.model}</span>
-                    <span className="text-[10px] text-slate-400">({m.stage})</span>
+                    <span className="text-[10px] text-slate-400">({m.project} · {m.stage})</span>
                   </div>
-                  <div className="flex items-center gap-4 font-mono">
+                  <div className="flex items-center gap-3.5 font-mono">
                     <span className="text-slate-300">
-                      Shift: <strong className="text-white">{m.dailyYield}%</strong>
+                      Daily: <strong className="text-white">{m.dailyYield}%</strong>
                     </span>
                     <span className="text-blue-300">
                       CUM: <strong>{m.yieldCUM}%</strong>
@@ -663,18 +680,18 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
               </span>
             </div>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-2 text-xs">
               {MODELS_DATA.map((m) => (
-                <div key={m.model} className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800 flex items-center justify-between">
+                <div key={m.model} className="p-2 rounded-lg bg-[#12141c] border border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
                     <span className="font-bold text-white font-mono">{m.model}</span>
-                    <span className="text-[10px] text-slate-400">WIP Backlog</span>
+                    <span className="text-[10px] text-slate-400">WIP</span>
                   </div>
-                  <div className="flex items-center gap-4 font-mono text-xs">
+                  <div className="flex items-center gap-3.5 font-mono text-xs">
                     <span className="text-amber-400 font-bold">{m.wipUnits} units</span>
                     <span className="text-slate-400 text-[10px]">
-                      &lt;24h: <strong className="text-slate-200">{m.wipAgingFresh}</strong> | 24-48h: <strong className="text-slate-200">{m.wipAgingTriage}</strong> | &gt;48h: <strong className="text-rose-400">{m.wipAgingEscalated}</strong>
+                      &lt;24h: <strong className="text-slate-200">{m.wipAgingFresh}</strong> | 24-48h: <strong className="text-slate-200">{m.wipAgingTriage}</strong> | &gt;48h: <strong className={m.wipAgingEscalated > 0 ? 'text-rose-400' : 'text-slate-400'}>{m.wipAgingEscalated}</strong>
                     </span>
                   </div>
                 </div>
@@ -696,9 +713,9 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
               </span>
             </div>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-2 text-xs">
               {MODELS_DATA.map((m) => (
-                <div key={m.model} className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800">
+                <div key={m.model} className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
                   <div className="flex items-center justify-between mb-1 font-mono">
                     <span className="font-bold text-white flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
@@ -780,6 +797,10 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
               <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
               <span>PKK4</span>
             </span>
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <span>WGO5</span>
+            </span>
             <span className="flex items-center gap-1.5 text-rose-400 text-[10.5px]">
               <span className="w-3 border-t-2 border-dashed border-rose-500" />
               <span>Target 98.5%</span>
@@ -806,6 +827,9 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
 
             {/* PKK4 Line (Purple) */}
             <path d="M 50,118 L 135,110 L 220,100 L 305,106 L 390,90 L 475,80 L 560,86 L 645,74" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" />
+
+            {/* WGO5 Line (Emerald) */}
+            <path d="M 50,125 L 135,118 L 220,112 L 305,120 L 390,105 L 475,96 L 560,92 L 645,88" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
 
             {/* Interactive Data Dots */}
             {YIELD_TREND_DAYS.map((d, i) => {
@@ -838,6 +862,7 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
               <span className="text-blue-400 font-bold">4CS4: {hoveredTrendDay.yield4CS4}%</span>
               <span className="text-amber-400 font-bold">CGY4: {hoveredTrendDay.yieldCGY4}%</span>
               <span className="text-purple-400 font-bold">PKK4: {hoveredTrendDay.yieldPKK4}%</span>
+              <span className="text-emerald-400 font-bold">WGO5: {hoveredTrendDay.yieldWGO5}%</span>
             </div>
           </div>
         )}
@@ -858,18 +883,16 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
             </span>
           </div>
 
-          {/* Search bar & Status Filter */}
-          <div className="flex items-center gap-2">
-            <div className="relative w-48 sm:w-56">
-              <Search className="w-3 h-3 absolute left-2.5 top-2.5 text-slate-400" />
-              <input
-                type="text"
-                value={bonepileSearch}
-                onChange={(e) => setBonepileSearch(e.target.value)}
-                placeholder="Search DSN, model, station..."
-                className="w-full pl-8 pr-2.5 py-1 text-xs bg-[#12141c] border border-slate-700/70 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
-              />
-            </div>
+          {/* Search bar */}
+          <div className="relative w-48 sm:w-56">
+            <Search className="w-3 h-3 absolute left-2.5 top-2.5 text-slate-400" />
+            <input
+              type="text"
+              value={bonepileSearch}
+              onChange={(e) => setBonepileSearch(e.target.value)}
+              placeholder="Search DSN, model, station..."
+              className="w-full pl-8 pr-2.5 py-1 text-xs bg-[#12141c] border border-slate-700/70 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
+            />
           </div>
         </div>
 
