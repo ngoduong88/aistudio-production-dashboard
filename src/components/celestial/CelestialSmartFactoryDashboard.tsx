@@ -24,8 +24,10 @@ import {
   Unlock,
   MessageSquare,
   Wrench,
-  HelpCircle,
-  ChevronRight
+  Grid,
+  ListFilter,
+  ChevronRight,
+  ArrowLeft
 } from 'lucide-react';
 
 interface CelestialSmartFactoryDashboardProps {
@@ -35,89 +37,153 @@ interface CelestialSmartFactoryDashboardProps {
   selectedDateRange: string;
 }
 
-// Top Defect Pareto Dataset (aligned with actual factory data)
-interface DefectItem {
-  id: string;
-  code: string;
-  count: number;
-  pct: number;
-  cumulativePct: number;
-  category: 'Process' | 'Equipment' | 'Component' | 'Test';
-  station: string;
-  primaryDRI: string;
-  trend: 'up' | 'down' | 'stable';
+// Model Production Summary interface (supports 6+ models)
+export interface ModelProductionSummary {
+  model: string;
+  fullName: string;
+  stage: 'MP' | 'Ramp' | 'Pilot' | 'Sustaining';
+  dailyYield: number;       // e.g. 99.28%
+  yieldCUM: number;         // Cumulative e.g. 99.15%
+  targetYield: number;      // e.g. 98.50%
+  inputQty: number;         // e.g. 4,850
+  planQty: number;          // e.g. 4,800
+  plusUnits: number;        // e.g. 4,815
+  minusUnits: number;       // e.g. 35
+  wipUnits: number;         // e.g. 28
+  wipAgingFresh: number;    // <24h
+  wipAgingTriage: number;   // 24-48h
+  wipAgingEscalated: number;// >48h
+  status: 'Optimal' | 'Warning' | 'Alert';
+  topDefect: string;
+  sparkline: number[];      // 7-day trend values
+  color: string;            // Accent color
 }
 
-const TOP_DEFECTS: DefectItem[] = [
+// 6 Active Production Models Running Concurrently
+const MODELS_DATA: ModelProductionSummary[] = [
   {
-    id: 'def-1',
-    code: 'Prox_precal: TEST_TIMEOUT',
-    count: 118,
-    pct: 31.9,
-    cumulativePct: 31.9,
-    category: 'Equipment',
-    station: 'FATP-DS-COMBO',
-    primaryDRI: 'Martin',
-    trend: 'down',
+    model: '4CS4',
+    fullName: '4CS4 (Mass Production)',
+    stage: 'MP',
+    dailyYield: 99.28,
+    yieldCUM: 99.15,
+    targetYield: 98.50,
+    inputQty: 4850,
+    planQty: 4800,
+    plusUnits: 4815,
+    minusUnits: 35,
+    wipUnits: 28,
+    wipAgingFresh: 18,
+    wipAgingTriage: 8,
+    wipAgingEscalated: 2,
+    status: 'Optimal',
+    topDefect: 'Cable Flam Flex torn (14 units)',
+    sparkline: [98.8, 99.0, 99.1, 98.9, 99.3, 99.2, 99.4],
+    color: '#3b82f6',
   },
   {
-    id: 'def-2',
-    code: 'Cable Flam Flex on BG was torn',
-    count: 84,
-    pct: 22.7,
-    cumulativePct: 54.6,
-    category: 'Process',
-    station: 'FATP-QT-1M',
-    primaryDRI: 'Tuyen',
-    trend: 'stable',
+    model: 'CGY4',
+    fullName: 'CGY4 (Ramp-up Line)',
+    stage: 'Ramp',
+    dailyYield: 98.40,
+    yieldCUM: 97.45,
+    targetYield: 98.50,
+    inputQty: 3200,
+    planQty: 3400,
+    plusUnits: 3149,
+    minusUnits: 51,
+    wipUnits: 46,
+    wipAgingFresh: 22,
+    wipAgingTriage: 16,
+    wipAgingEscalated: 8,
+    status: 'Warning',
+    topDefect: 'Prox_precal: TEST_TIMEOUT (24 units)',
+    sparkline: [95.8, 96.2, 96.0, 95.4, 96.8, 97.6, 98.4],
+    color: '#f59e0b',
   },
   {
-    id: 'def-3',
-    code: 'Foreign object (FOF) on PSA/CG',
-    count: 56,
-    pct: 15.1,
-    cumulativePct: 69.7,
-    category: 'Process',
-    station: 'FATP-AIRLK-WT',
-    primaryDRI: 'Martin',
-    trend: 'up',
+    model: 'PKK4',
+    fullName: 'PKK4 (NPI Pilot)',
+    stage: 'Pilot',
+    dailyYield: 98.50,
+    yieldCUM: 98.12,
+    targetYield: 98.50,
+    inputQty: 2100,
+    planQty: 2000,
+    plusUnits: 2068,
+    minusUnits: 32,
+    wipUnits: 34,
+    wipAgingFresh: 16,
+    wipAgingTriage: 12,
+    wipAgingEscalated: 6,
+    status: 'Optimal',
+    topDefect: 'Foreign object (FOF) on PSA (18 units)',
+    sparkline: [97.1, 97.4, 97.0, 97.5, 97.8, 98.2, 98.5],
+    color: '#a855f7',
   },
   {
-    id: 'def-4',
-    code: 'Connector B2B Flam Flex deformation (J25002)',
-    count: 42,
-    pct: 11.4,
-    cumulativePct: 81.1,
-    category: 'Process',
-    station: 'FATP-QT-1M',
-    primaryDRI: 'Tuyen',
-    trend: 'down',
+    model: 'P25',
+    fullName: 'P25 (Sustaining Run)',
+    stage: 'Sustaining',
+    dailyYield: 99.45,
+    yieldCUM: 99.30,
+    targetYield: 98.50,
+    inputQty: 2400,
+    planQty: 2400,
+    plusUnits: 2387,
+    minusUnits: 13,
+    wipUnits: 16,
+    wipAgingFresh: 12,
+    wipAgingTriage: 4,
+    wipAgingEscalated: 0,
+    status: 'Optimal',
+    topDefect: 'Connector deformation J25002 (5 units)',
+    sparkline: [99.1, 99.2, 99.3, 99.4, 99.3, 99.5, 99.5],
+    color: '#10b981',
   },
   {
-    id: 'def-5',
-    code: 'RF Cal Fail / Antenna Attenuation',
-    count: 38,
-    pct: 10.3,
-    cumulativePct: 91.4,
-    category: 'Equipment',
-    station: 'FATP-RF-CELL',
-    primaryDRI: 'Quang',
-    trend: 'up',
+    model: 'MIL',
+    fullName: 'MIL (Rugged Spec)',
+    stage: 'MP',
+    dailyYield: 98.15,
+    yieldCUM: 98.02,
+    targetYield: 98.00,
+    inputQty: 1100,
+    planQty: 1000,
+    plusUnits: 1080,
+    minusUnits: 20,
+    wipUnits: 12,
+    wipAgingFresh: 8,
+    wipAgingTriage: 3,
+    wipAgingEscalated: 1,
+    status: 'Optimal',
+    topDefect: 'RF Cal Attenuation (8 units)',
+    sparkline: [97.8, 97.9, 98.0, 98.2, 98.0, 98.1, 98.2],
+    color: '#ec4899',
   },
   {
-    id: 'def-6',
-    code: 'Reboot then Retest Pass (NTF)',
-    count: 32,
-    pct: 8.6,
-    cumulativePct: 100.0,
-    category: 'Test',
-    station: 'Multiple',
-    primaryDRI: 'Martin',
-    trend: 'down',
+    model: '4CS3',
+    fullName: '4CS3 (Legacy Sustaining)',
+    stage: 'Sustaining',
+    dailyYield: 99.60,
+    yieldCUM: 99.50,
+    targetYield: 98.50,
+    inputQty: 600,
+    planQty: 600,
+    plusUnits: 598,
+    minusUnits: 2,
+    wipUnits: 6,
+    wipAgingFresh: 5,
+    wipAgingTriage: 1,
+    wipAgingEscalated: 0,
+    status: 'Optimal',
+    topDefect: 'Retest NTF Pass (2 units)',
+    sparkline: [99.4, 99.5, 99.5, 99.6, 99.5, 99.6, 99.6],
+    color: '#06b6d4',
   },
 ];
 
-// Historical Yield Run Chart Data (8/1 to 8/8)
+// Historical Run Chart Data (8/1 to 8/8)
 const YIELD_TREND_DAYS = [
   { date: '8/1', yield4CS4: 98.4, yieldCGY4: 95.8, yieldPKK4: 97.1, target: 98.5, plus: 1680, minus: 52 },
   { date: '8/2', yield4CS4: 98.8, yieldCGY4: 96.2, yieldPKK4: 97.4, target: 98.5, plus: 1720, minus: 44 },
@@ -129,10 +195,30 @@ const YIELD_TREND_DAYS = [
   { date: '8/8', yield4CS4: 99.4, yieldCGY4: 98.4, yieldPKK4: 98.5, target: 98.5, plus: 1850, minus: 26 },
 ];
 
-// Bonepile Inventory Records (matches user's real factory DSN & FA tickets)
+// Top Defect Pareto Dataset
+interface DefectItem {
+  id: string;
+  code: string;
+  count: number;
+  pct: number;
+  category: 'Process' | 'Equipment' | 'Component' | 'Test';
+  station: string;
+  primaryDRI: string;
+}
+
+const TOP_DEFECTS: DefectItem[] = [
+  { id: 'def-1', code: 'Prox_precal: TEST_TIMEOUT', count: 118, pct: 31.9, category: 'Equipment', station: 'FATP-DS-COMBO', primaryDRI: 'Martin' },
+  { id: 'def-2', code: 'Cable Flam Flex on BG was torn', count: 84, pct: 22.7, category: 'Process', station: 'FATP-QT-1M', primaryDRI: 'Tuyen' },
+  { id: 'def-3', code: 'Foreign object (FOF) on PSA/CG', count: 56, pct: 15.1, category: 'Process', station: 'FATP-AIRLK-WT', primaryDRI: 'Martin' },
+  { id: 'def-4', code: 'Connector B2B Flam Flex deformation (J25002)', count: 42, pct: 11.4, category: 'Process', station: 'FATP-QT-1M', primaryDRI: 'Tuyen' },
+  { id: 'def-5', code: 'RF Cal Fail / Antenna Attenuation', count: 38, pct: 10.3, category: 'Equipment', station: 'FATP-RF-CELL', primaryDRI: 'Quang' },
+  { id: 'def-6', code: 'Reboot then Retest Pass (NTF)', count: 32, pct: 8.6, category: 'Test', station: 'Multiple', primaryDRI: 'Martin' },
+];
+
+// Bonepile Inventory Records
 interface BonepileRecord {
   dsn: string;
-  model: '4CS4' | 'CGY4' | 'PKK4';
+  model: string;
   station: string;
   defectDesc: string;
   category: 'Process' | 'Equipment' | 'Component' | 'Test';
@@ -141,119 +227,51 @@ interface BonepileRecord {
   status: 'Pending FA' | 'Under Repair' | 'Awaiting Parts' | 'Retest Pass' | 'Quality Locked';
   isLocked: boolean;
   lockReason?: string;
-  faReportLink?: string;
 }
 
 const BONEPILE_DATA: BonepileRecord[] = [
-  {
-    dsn: '6A210DLKY003CY',
-    model: '4CS4',
-    station: 'FATP-DS-COMBO',
-    defectDesc: 'Prox_precal: TEST_TIMEOUT',
-    category: 'Equipment',
-    dri: 'Martin',
-    agingHours: 14,
-    status: 'Pending FA',
-    isLocked: false,
-    faReportLink: 'VN 4CS4 MP Precal FA Report 20261026',
-  },
-  {
-    dsn: '6A230DLKY00523',
-    model: '4CS4',
-    station: 'FATP-QT-1M',
-    defectDesc: 'Cable Flam Flex on BG was torn',
-    category: 'Process',
-    dri: 'Tuyen',
-    agingHours: 28,
-    status: 'Under Repair',
-    isLocked: false,
-    faReportLink: 'VN 4CS4 MP Flex Tear FA Report 20261028',
-  },
-  {
-    dsn: '6A260DLKY000AQ',
-    model: '4CS4',
-    station: 'FATP-QT-1M',
-    defectDesc: 'Cable Flam Flex on BG was torn',
-    category: 'Process',
-    dri: 'Tuyen',
-    agingHours: 52,
-    status: 'Awaiting Parts',
-    isLocked: false,
-  },
-  {
-    dsn: '6A240DLDV001JR',
-    model: 'PKK4',
-    station: 'FATP-AIRLK-WT',
-    defectDesc: 'Foreign object between CG PSA and CG at A2 pos',
-    category: 'Process',
-    dri: 'Martin',
-    agingHours: 18,
-    status: 'Retest Pass',
-    isLocked: false,
-  },
-  {
-    dsn: '6A300DLDV0003H',
-    model: 'PKK4',
-    station: 'FATP-RF-CELL',
-    defectDesc: 'FOF on ENCL was missing (Antenna)',
-    category: 'Process',
-    dri: 'Quang',
-    agingHours: 86,
-    status: 'Quality Locked',
-    isLocked: true,
-    lockReason: 'FAE Accessory Lock: 05C7301052411AA69C110081D',
-    faReportLink: 'VN PKK4 MP Antenna FA Report From 20260714',
-  },
-  {
-    dsn: '6A260DLKY0004R',
-    model: '4CS4',
-    station: 'FATP-QT-1M',
-    defectDesc: 'Connector B2B Flam Flex on J25002 was deformed',
-    category: 'Process',
-    dri: 'Tuyen',
-    agingHours: 6,
-    status: 'Under Repair',
-    isLocked: false,
-  },
-  {
-    dsn: '6A230DLKY00478',
-    model: '4CS4',
-    station: 'FATP-QT-1M',
-    defectDesc: 'Cable Flam Flex on BG was torn',
-    category: 'Process',
-    dri: 'Duc',
-    agingHours: 32,
-    status: 'Pending FA',
-    isLocked: false,
-  },
-  {
-    dsn: '6A210DLCG0019A',
-    model: 'CGY4',
-    station: 'SMT-SPI-02',
-    defectDesc: 'Solder volume insufficient on U2301 BGA',
-    category: 'Equipment',
-    dri: 'Quang',
-    agingHours: 192,
-    status: 'Quality Locked',
-    isLocked: true,
-    lockReason: 'Line Stencil Inspection Lock',
-  },
+  { dsn: '6A210DLKY003CY', model: '4CS4', station: 'FATP-DS-COMBO', defectDesc: 'Prox_precal: TEST_TIMEOUT', category: 'Equipment', dri: 'Martin', agingHours: 14, status: 'Pending FA', isLocked: false },
+  { dsn: '6A230DLKY00523', model: '4CS4', station: 'FATP-QT-1M', defectDesc: 'Cable Flam Flex on BG was torn', category: 'Process', dri: 'Tuyen', agingHours: 28, status: 'Under Repair', isLocked: false },
+  { dsn: '6A260DLKY000AQ', model: '4CS4', station: 'FATP-QT-1M', defectDesc: 'Cable Flam Flex on BG was torn', category: 'Process', dri: 'Tuyen', agingHours: 52, status: 'Awaiting Parts', isLocked: false },
+  { dsn: '6A240DLDV001JR', model: 'PKK4', station: 'FATP-AIRLK-WT', defectDesc: 'Foreign object between CG PSA and CG at A2 pos', category: 'Process', dri: 'Martin', agingHours: 18, status: 'Retest Pass', isLocked: false },
+  { dsn: '6A300DLDV0003H', model: 'PKK4', station: 'FATP-RF-CELL', defectDesc: 'FOF on ENCL was missing (Antenna)', category: 'Process', dri: 'Quang', agingHours: 86, status: 'Quality Locked', isLocked: true, lockReason: 'FAE Accessory Lock: 05C7301052411AA69C110081D' },
+  { dsn: '6A260DLKY0004R', model: '4CS4', station: 'FATP-QT-1M', defectDesc: 'Connector B2B Flam Flex on J25002 was deformed', category: 'Process', dri: 'Tuyen', agingHours: 6, status: 'Under Repair', isLocked: false },
+  { dsn: '6A230DLKY00478', model: '4CS4', station: 'FATP-QT-1M', defectDesc: 'Cable Flam Flex on BG was torn', category: 'Process', dri: 'Duc', agingHours: 32, status: 'Pending FA', isLocked: false },
+  { dsn: '6A210DLCG0019A', model: 'CGY4', station: 'SMT-SPI-02', defectDesc: 'Solder volume insufficient on U2301 BGA', category: 'Equipment', dri: 'Quang', agingHours: 192, status: 'Quality Locked', isLocked: true, lockReason: 'Line Stencil Inspection Lock' },
+  { dsn: '6A220DLP20014B', model: 'P25', station: 'FATP-DS-COMBO', defectDesc: 'Touch calibration offset > 1.2mm', category: 'Equipment', dri: 'Martin', agingHours: 12, status: 'Under Repair', isLocked: false },
+  { dsn: '6A250DLML0008E', model: 'MIL', station: 'FATP-AIRLK-WT', defectDesc: 'Pressure seal leak on gasket B', category: 'Process', dri: 'Duc', agingHours: 44, status: 'Awaiting Parts', isLocked: false },
 ];
 
 export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashboardProps> = ({
   records,
   kpis,
   onOpenChat,
-  selectedDateRange,
 }) => {
-  // Interactive filters
-  const [selectedModel, setSelectedModel] = useState<'ALL' | '4CS4' | 'CGY4' | 'PKK4'>('ALL');
+  // View mode state: 'byModel' vs 'byCategory'
+  const [viewMode, setViewMode] = useState<'byModel' | 'byCategory'>('byModel');
+  const [selectedModel, setSelectedModel] = useState<string>('ALL');
   const [selectedShift, setSelectedShift] = useState<'ALL' | 'Day' | 'Night'>('ALL');
   const [selectedBonepileStatus, setSelectedBonepileStatus] = useState<string>('ALL');
   const [bonepileSearch, setBonepileSearch] = useState('');
   const [hoveredTrendDay, setHoveredTrendDay] = useState<typeof YIELD_TREND_DAYS[0] | null>(null);
 
-  // Model-filtered Bonepile records
+  // Aggregated totals across all 6 models
+  const totalFleetStats = useMemo(() => {
+    let input = 0;
+    let plus = 0;
+    let minus = 0;
+    let wip = 0;
+    MODELS_DATA.forEach((m) => {
+      input += m.inputQty;
+      plus += m.plusUnits;
+      minus += m.minusUnits;
+      wip += m.wipUnits;
+    });
+    const yieldAvg = input > 0 ? Number(((plus / input) * 100).toFixed(2)) : 98.42;
+    return { input, plus, minus, wip, yieldAvg };
+  }, []);
+
+  // Filtered Bonepile records
   const filteredBonepile = useMemo(() => {
     return BONEPILE_DATA.filter((item) => {
       if (selectedModel !== 'ALL' && item.model !== selectedModel) return false;
@@ -271,60 +289,70 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
     });
   }, [selectedModel, selectedBonepileStatus, bonepileSearch]);
 
-  // Bonepile Aging Stats
-  const agingStats = useMemo(() => {
-    const fresh = BONEPILE_DATA.filter((b) => b.agingHours <= 24).length;
-    const triage = BONEPILE_DATA.filter((b) => b.agingHours > 24 && b.agingHours <= 48).length;
-    const escalated = BONEPILE_DATA.filter((b) => b.agingHours > 48 && b.agingHours <= 168).length;
-    const criticalOverdue = BONEPILE_DATA.filter((b) => b.agingHours > 168).length;
-    const total = BONEPILE_DATA.length;
-    const lockedCount = BONEPILE_DATA.filter((b) => b.isLocked).length;
-
-    return { fresh, triage, escalated, criticalOverdue, total, lockedCount };
-  }, []);
-
-  // Compute live Yield according to model filter
-  const displayYield = useMemo(() => {
-    if (selectedModel === '4CS4') return 99.28;
-    if (selectedModel === 'CGY4') return 97.45;
-    if (selectedModel === 'PKK4') return 98.12;
-    return kpis.fleetYieldRate > 0 ? kpis.fleetYieldRate : 98.42;
-  }, [selectedModel, kpis.fleetYieldRate]);
+  // Selected single model details (when zooming into 1 model)
+  const singleModelData = useMemo(() => {
+    return MODELS_DATA.find((m) => m.model === selectedModel) || null;
+  }, [selectedModel]);
 
   return (
     <div className="space-y-4">
       {/* ========================================================================= */}
-      {/* 1. COMPACT FACTORY OPERATIONS BAR & INTERACTIVE FILTERS */}
+      {/* 1. ULTRA-COMPACT TOOLBAR (Single line, maximum vertical space saved)      */}
       {/* ========================================================================= */}
-      <div className="bg-[#181a24] border border-slate-700/60 rounded-xl px-4 py-3 shadow-lg flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400 shrink-0" />
-          <div>
-            <h2 className="text-sm sm:text-base font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span>Manufacturing Yield, Failure Analysis & Bonepile Center</span>
-              <span className="hidden sm:inline-block font-mono text-[9.5px] uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
-                Live MES Connected
-              </span>
-            </h2>
-            <p className="text-[11px] text-slate-400">
-              Active telemetry across SMT lines, DIP insertion, Box-Build & FATP stations.
-            </p>
-          </div>
+      <div className="bg-[#181a24] border border-slate-700/60 rounded-xl px-3 sm:px-4 py-2 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        {/* Left: Compact Title with Live Indicator */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400" />
+          <h2 className="text-xs sm:text-sm font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>FIH Operations Intelligence</span>
+            <span className="font-mono text-[9px] uppercase px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+              6 Models
+            </span>
+          </h2>
         </div>
 
-        {/* Filter Pills (Model & Shift) */}
+        {/* Center / Right: View Mode Toggle & Model Filter Pills */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          {/* Model Filter Pills */}
-          <div className="flex items-center gap-1 p-0.5 bg-[#12141c] border border-slate-700/80 rounded-lg text-xs font-semibold">
-            <span className="px-2 text-[10px] text-slate-400 uppercase font-mono">Model:</span>
-            {(['ALL', '4CS4', 'CGY4', 'PKK4'] as const).map((m) => (
+          {/* View Mode Switcher (By Model vs By Category) */}
+          <div className="flex items-center p-0.5 bg-[#12141c] border border-slate-700/80 rounded-lg font-semibold">
+            <button
+              type="button"
+              onClick={() => setViewMode('byModel')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                viewMode === 'byModel'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Display individual cards for each model combining Yield, CUM, Input, WIP"
+            >
+              <Grid className="w-3 h-3" />
+              <span>By Model</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('byCategory')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                viewMode === 'byCategory'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Display cards grouped by category across all models (All Yields, All WIPs...)"
+            >
+              <ListFilter className="w-3 h-3" />
+              <span>By Category</span>
+            </button>
+          </div>
+
+          {/* Model Selector Pills (Supports 6+ models) */}
+          <div className="flex items-center gap-0.5 p-0.5 bg-[#12141c] border border-slate-700/80 rounded-lg font-semibold overflow-x-auto scrollbar-none">
+            {['ALL', '4CS4', 'CGY4', 'PKK4', 'P25', 'MIL', '4CS3'].map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => setSelectedModel(m)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold transition-all cursor-pointer shrink-0 ${
                   selectedModel === m
-                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
               >
@@ -333,661 +361,568 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
             ))}
           </div>
 
-          {/* Shift Filter Pills */}
-          <div className="flex items-center gap-1 p-0.5 bg-[#12141c] border border-slate-700/80 rounded-lg text-xs font-semibold">
-            <span className="px-2 text-[10px] text-slate-400 uppercase font-mono">Shift:</span>
+          {/* Shift Selector */}
+          <div className="hidden sm:flex items-center gap-0.5 p-0.5 bg-[#12141c] border border-slate-700/80 rounded-lg font-semibold">
             {(['ALL', 'Day', 'Night'] as const).map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setSelectedShift(s)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                   selectedShift === s
-                    ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {s === 'ALL' ? 'All' : `${s} Shift`}
+                {s === 'ALL' ? 'All Shifts' : s}
               </button>
             ))}
           </div>
 
-          {/* Ask AI Copilot Shortcut */}
+          {/* AI Insights Action Button */}
           <button
             type="button"
-            onClick={() => onOpenChat('Provide a high-level summary of current yield, top defect codes, and bonepile aging.')}
-            className="px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+            onClick={() => onOpenChat('Provide a brief comparative status of all active models: 4CS4, CGY4, PKK4, P25, MIL, and 4CS3.')}
+            className="px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg text-[10.5px] font-bold flex items-center gap-1 shadow-xs transition-all cursor-pointer"
           >
             <Sparkles className="w-3 h-3 text-amber-300" />
-            <span>AI Insights</span>
+            <span className="hidden sm:inline">AI Insights</span>
           </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. TOP EXECUTIVE YIELD & PRODUCTION KPI STRIP */}
+      {/* 2. DYNAMIC CONTENT: BASED ON VIEW MODE & MODEL SELECTION                  */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3.5">
-        {/* KPI 1: Sustaining Yield */}
-        <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-3.5 shadow-lg flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/50 transition-colors">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[11px] font-semibold text-slate-400">Sustaining Yield</span>
-            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Target 98.5%
-            </span>
-          </div>
-          <div className="my-2">
-            <div className="text-2xl font-black text-white tracking-tight flex items-baseline gap-1">
-              <span>{displayYield}%</span>
-            </div>
-            <div className="flex items-center gap-1 text-[10.5px] text-emerald-400 font-semibold mt-0.5">
-              <TrendingUp className="w-3 h-3" />
-              <span>+0.35% vs Last Shift</span>
-            </div>
-          </div>
-          <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              style={{ width: `${Math.min(100, displayYield)}%` }}
-              className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full"
-            />
-          </div>
-        </div>
 
-        {/* KPI 2: First Pass Yield (FPY) */}
-        <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-3.5 shadow-lg flex flex-col justify-between group hover:border-emerald-500/50 transition-colors">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[11px] font-semibold text-slate-400">First Pass Yield</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          </div>
-          <div className="my-2">
-            <div className="text-2xl font-black text-emerald-400 tracking-tight">96.85%</div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Retest recovery: +1.57%</p>
-          </div>
-          <span className="text-[10px] text-slate-300 font-medium">Goal: ≥ 96.0% (Passed)</span>
-        </div>
-
-        {/* KPI 3: Input Quantity */}
-        <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-3.5 shadow-lg flex flex-col justify-between group hover:border-blue-500/50 transition-colors">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[11px] font-semibold text-slate-400">Total Input</span>
-            <Box className="w-3.5 h-3.5 text-blue-400" />
-          </div>
-          <div className="my-2">
-            <div className="text-2xl font-black text-white tracking-tight">
-              {kpis.totalTarget > 0 ? kpis.totalTarget.toLocaleString() : '14,250'}
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Paced against plan</p>
-          </div>
-          <span className="text-[10px] text-blue-400 font-semibold">101.8% of daily plan</span>
-        </div>
-
-        {/* KPI 4: Good Output (Plus Units) */}
-        <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-3.5 shadow-lg flex flex-col justify-between group hover:border-indigo-500/50 transition-colors">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[11px] font-semibold text-slate-400">Pass (Plus Units)</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-indigo-400" />
-          </div>
-          <div className="my-2">
-            <div className="text-2xl font-black text-slate-100 tracking-tight">
-              {kpis.totalPassed > 0 ? kpis.totalPassed.toLocaleString() : '13,880'}
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Finished good devices</p>
-          </div>
-          <span className="text-[10px] text-slate-400 font-mono">97.4% Passed 1st test</span>
-        </div>
-
-        {/* KPI 5: Defect Fallout (Minus Units) */}
-        <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-3.5 shadow-lg flex flex-col justify-between group hover:border-rose-500/50 transition-colors">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[11px] font-semibold text-slate-400">Fallout (Minus Units)</span>
-            <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" />
-          </div>
-          <div className="my-2">
-            <div className="text-2xl font-black text-rose-400 tracking-tight">
-              {kpis.totalDefects > 0 ? kpis.totalDefects.toLocaleString() : '370'}
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Scrap + Rework</p>
-          </div>
-          <span className="text-[10px] text-rose-300 font-medium">Fallout Rate: 2.60%</span>
-        </div>
-
-        {/* KPI 6: Bonepile WIP Units */}
-        <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-3.5 shadow-lg flex flex-col justify-between group hover:border-amber-500/50 transition-colors">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[11px] font-semibold text-slate-400">Bonepile WIP</span>
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-          </div>
-          <div className="my-2">
-            <div className="text-2xl font-black text-amber-400 tracking-tight">
-              {agingStats.total}
-            </div>
-            <p className="text-[10px] text-rose-400 font-semibold mt-0.5">
-              {agingStats.criticalOverdue} units &gt; 7 days 🚨
-            </p>
-          </div>
-          <span className="text-[10px] text-slate-300 font-medium">
-            {agingStats.lockedCount} Locked units
-          </span>
-        </div>
-
-        {/* KPI 7: Average Line OEE */}
-        <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-3.5 shadow-lg flex flex-col justify-between group hover:border-cyan-500/50 transition-colors">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[11px] font-semibold text-slate-400">Fleet OEE</span>
-            <Activity className="w-3.5 h-3.5 text-cyan-400" />
-          </div>
-          <div className="my-2">
-            <div className="text-2xl font-black text-cyan-300 tracking-tight">
-              {kpis.averageOEE > 0 ? kpis.averageOEE : 88.5}%
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">5 active assembly lines</p>
-          </div>
-          <span className="text-[10px] text-emerald-400 font-medium">Tier-1 World Class</span>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. ROW 1: YIELD TRENDING CHARTS & MULTI-MODEL RUN CHART */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Main Yield Trend Line Chart (Col 8) */}
-        <div className="lg:col-span-8 bg-[#181a24] border border-slate-700/60 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
-            <div>
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-blue-400" />
-                <h3 className="text-sm font-bold text-white tracking-tight">
-                  Yield Trend Run Chart (Sustaining Yield Over Time)
-                </h3>
-              </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Comparing Sustaining Yield % across active models vs factory target (98.5%).
-              </p>
-            </div>
-
-            {/* Model Legend Toggle Pills */}
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1.5 text-blue-400 font-semibold">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                <span>4CS4 (MP)</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                <span>CGY4 (Ramp)</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-purple-400 font-semibold">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-                <span>PKK4 (Pilot)</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-rose-400 font-mono text-[10.5px]">
-                <span className="w-3 border-t-2 border-dashed border-rose-500" />
-                <span>Target 98.5%</span>
-              </span>
-            </div>
-          </div>
-
-          {/* SVG Run Chart */}
-          <div className="relative h-64 w-full mt-4">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 700 220" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="areaGradient4CS4" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Grid Lines for 95%, 96%, 97%, 98%, 99%, 100% */}
-              {[40, 75, 110, 145, 180].map((y, idx) => (
-                <line
-                  key={idx}
-                  x1="0"
-                  y1={y}
-                  x2="700"
-                  y2={y}
-                  stroke="#282f42"
-                  strokeDasharray="4 4"
-                  strokeWidth="1"
-                />
-              ))}
-
-              {/* Red Target Line at 98.5% (~y=92) */}
-              <line
-                x1="0"
-                y1="92"
-                x2="700"
-                y2="92"
-                stroke="#e11d48"
-                strokeDasharray="6 4"
-                strokeWidth="1.8"
-              />
-
-              {/* 4CS4 Area Fill */}
-              <path
-                d="M 50,96 L 135,82 L 220,70 L 305,65 L 390,75 L 475,55 L 560,60 L 645,45 L 645,210 L 50,210 Z"
-                fill="url(#areaGradient4CS4)"
-              />
-
-              {/* 4CS4 Line (Blue) */}
-              <path
-                d="M 50,96 L 135,82 L 220,70 L 305,65 L 390,75 L 475,55 L 560,60 L 645,45"
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              {/* CGY4 Line (Amber) */}
-              <path
-                d="M 50,185 L 135,170 L 220,178 L 305,195 L 390,150 L 475,120 L 560,105 L 645,95"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              {/* PKK4 Line (Purple) */}
-              <path
-                d="M 50,145 L 135,135 L 220,122 L 305,130 L 390,110 L 475,98 L 560,105 L 645,90"
-                fill="none"
-                stroke="#a855f7"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              {/* Interactive Data Point Markers */}
-              {YIELD_TREND_DAYS.map((d, i) => {
-                const cx = 50 + i * 85;
-                const cy4CS4 = [96, 82, 70, 65, 75, 55, 60, 45][i];
-                return (
-                  <g key={i} className="cursor-pointer group">
-                    <circle
-                      cx={cx}
-                      cy={cy4CS4}
-                      r="5"
-                      fill="#3b82f6"
-                      stroke="#ffffff"
-                      strokeWidth="2"
-                      className="transition-transform group-hover:scale-150"
-                      onMouseEnter={() => setHoveredTrendDay(d)}
-                    />
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* X-Axis Date Labels */}
-            <div className="flex justify-between px-6 text-xs text-slate-400 font-mono pt-2 border-t border-slate-700/60">
-              {YIELD_TREND_DAYS.map((d, i) => (
-                <span
-                  key={i}
-                  className={`cursor-pointer transition-colors ${
-                    hoveredTrendDay?.date === d.date ? 'text-blue-400 font-bold' : 'hover:text-slate-200'
-                  }`}
-                  onClick={() => setHoveredTrendDay(d)}
-                >
-                  {d.date}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Active Data Point Hover Details */}
-          {hoveredTrendDay && (
-            <div className="mt-3 p-3 bg-[#12141c] border border-blue-500/40 rounded-xl flex items-center justify-between text-xs animate-fadeIn">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-blue-600 text-white font-mono font-bold text-[11px]">
-                  Date: {hoveredTrendDay.date}
-                </span>
-                <span className="text-slate-300">
-                  Total Plus: <strong className="text-white font-mono">{hoveredTrendDay.plus}</strong> units | Fallout: <strong className="text-rose-400 font-mono">{hoveredTrendDay.minus}</strong> units
-                </span>
-              </div>
-              <div className="flex items-center gap-4 font-mono font-bold">
-                <span className="text-blue-400">4CS4: {hoveredTrendDay.yield4CS4}%</span>
-                <span className="text-amber-400">CGY4: {hoveredTrendDay.yieldCGY4}%</span>
-                <span className="text-purple-400">PKK4: {hoveredTrendDay.yieldPKK4}%</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Realtime Yield Anomaly & Insight Card (Col 4) */}
-        <div className="lg:col-span-4 bg-[#181a24] border border-slate-700/60 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <span>Yield Anomaly Intelligence</span>
-              </h3>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                AI Analyzed
-              </span>
-            </div>
-
-            <div className="space-y-3.5 mt-4 text-xs">
-              <div className="p-3 rounded-xl bg-[#12141c] border-l-4 border-l-emerald-500 border border-slate-700/60">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-white">4CS4 (Mass Production)</span>
-                  <span className="text-[10px] font-mono text-emerald-400 font-semibold">99.2% Stable</span>
-                </div>
-                <p className="text-slate-400 text-[11px] mt-1">
-                  High yield stability sustained with under 0.8% fallout rate. Zero CRB or retest bottleneck detected.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#12141c] border-l-4 border-l-amber-500 border border-slate-700/60">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-white">CGY4 (Ramp-Up Recovery)</span>
-                  <span className="text-[10px] font-mono text-amber-400 font-semibold">Recovered to 98.4%</span>
-                </div>
-                <p className="text-slate-400 text-[11px] mt-1">
-                  Downtime on 8/5 due to SPI solder paste stencil aperture cleaning. Yield improved +2.6% over 48 hours.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#12141c] border-l-4 border-l-purple-500 border border-slate-700/60">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-white">PKK4 (NPI Pilot Line)</span>
-                  <span className="text-[10px] font-mono text-purple-300 font-semibold">98.1% Target Hit</span>
-                </div>
-                <p className="text-slate-400 text-[11px] mt-1">
-                  FA DRI Martin investigating minor RF Cell antenna attenuation. 1 unit accessory lock pending disposition.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onOpenChat('Deep dive into CGY4 and PKK4 yield differences and root cause recommendations.')}
-            className="w-full mt-4 py-2 bg-[#222736] hover:bg-slate-700 text-blue-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-600/60"
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Ask Copilot to Analyze Root Causes</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 4. ROW 2: FAILURE ANALYSIS & DEFECT PARETO BREAKDOWN */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Pareto Failure Breakdown (Col 8) */}
-        <div className="lg:col-span-8 bg-[#181a24] border border-slate-700/60 rounded-2xl p-5 sm:p-6 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-700/60">
-            <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <AlertOctagon className="w-4 h-4 text-rose-400" />
-                <span>Top Failure Analysis (Defect Pareto Breakdown)</span>
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Categorized by failure symptom, test station, and engineer DRI.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-[10.5px]">
-              <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                Process (54.6%)
-              </span>
-              <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                Equipment (36.8%)
-              </span>
-              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Test / NTF (8.6%)
-              </span>
-            </div>
-          </div>
-
-          {/* Pareto Bars */}
-          <div className="space-y-4 mt-4">
-            {TOP_DEFECTS.map((d, index) => (
-              <div key={d.id} className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-medium">
-                    <span className="w-5 h-5 rounded-md bg-[#222736] text-slate-300 font-mono text-[10px] flex items-center justify-center font-bold">
-                      #{index + 1}
-                    </span>
-                    <span className="text-white font-semibold">{d.code}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      (Station: <strong className="text-slate-300">{d.station}</strong>)
-                    </span>
+      {/* ------------------------------------------------------------------------- */}
+      {/* VIEW MODE 1: BY MODEL (Each model has its own card combining Yield, CUM, Input, WIP) */}
+      {/* ------------------------------------------------------------------------- */}
+      {viewMode === 'byModel' && (
+        <>
+          {/* If a single model is selected, show focused Single-Model Command Card */}
+          {selectedModel !== 'ALL' && singleModelData ? (
+            <div className="bg-[#181a24] border-2 border-blue-500/50 rounded-2xl p-5 shadow-2xl relative space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedModel('ALL')}
+                    className="p-1.5 rounded-lg bg-[#12141c] hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700/60"
+                    title="Return to All Models view"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
+                  <div>
+                    <h3 className="text-base font-black text-white flex items-center gap-2">
+                      <span>Model {singleModelData.fullName}</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        {singleModelData.stage}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Target: ≥ {singleModelData.targetYield}% · Daily Yield vs Cumulative Trend
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3 font-mono">
-                    <span className="text-white font-bold">{d.count} units</span>
-                    <span className="text-slate-400 font-semibold w-12 text-right">({d.pct}%)</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenChat(`Analyze model ${singleModelData.model} yield, failure breakdown, and bonepile status.`)}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-sm w-fit"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Analyze {singleModelData.model} with AI</span>
+                </button>
+              </div>
+
+              {/* 4 In-Depth Key Metric Boxes */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 text-xs">
+                {/* Box 1: Yield vs Target */}
+                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span>Shift Yield</span>
+                    <span className="text-emerald-400 font-bold">Goal {singleModelData.targetYield}%</span>
+                  </div>
+                  <div className="text-2xl font-black text-white mt-1">
+                    {singleModelData.dailyYield}%
+                  </div>
+                  <div className="text-[10px] text-emerald-400 font-semibold mt-0.5">
+                    +{(singleModelData.dailyYield - singleModelData.targetYield).toFixed(2)}% vs Target
+                  </div>
+                </div>
+
+                {/* Box 2: Yield CUM */}
+                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span>Yield CUM (Total)</span>
+                    <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
+                  </div>
+                  <div className="text-2xl font-black text-blue-300 mt-1">
+                    {singleModelData.yieldCUM}%
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    Cumulative sustaining yield
+                  </div>
+                </div>
+
+                {/* Box 3: Input & Output */}
+                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span>Input Qty</span>
+                    <span className="text-slate-300 font-mono">Plan: {singleModelData.planQty}</span>
+                  </div>
+                  <div className="text-2xl font-black text-white mt-1">
+                    {singleModelData.inputQty.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                    Pass: <strong className="text-emerald-400">{singleModelData.plusUnits}</strong> | Fail: <strong className="text-rose-400">{singleModelData.minusUnits}</strong>
+                  </div>
+                </div>
+
+                {/* Box 4: WIP & Bonepile */}
+                <div className="p-3.5 rounded-xl bg-[#12141c] border border-slate-700/70">
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span>WIP / Bonepile</span>
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                  </div>
+                  <div className="text-2xl font-black text-amber-400 mt-1">
+                    {singleModelData.wipUnits} units
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                    &lt;24h: {singleModelData.wipAgingFresh} | 24-48h: {singleModelData.wipAgingTriage} | &gt;48h: {singleModelData.wipAgingEscalated}
+                  </div>
+                </div>
+              </div>
+
+              {/* Notice pill */}
+              <div className="p-2.5 rounded-xl bg-[#12141c] border border-slate-700/60 flex items-center justify-between text-xs">
+                <span className="text-slate-400">
+                  Top Failure for {singleModelData.model}: <strong className="text-white font-medium">{singleModelData.topDefect}</strong>
+                </span>
+                <span className="text-[10.5px] text-slate-400 font-mono">
+                  Displaying station data & bonepile records filtered to <strong>{singleModelData.model}</strong> below ↓
+                </span>
+              </div>
+            </div>
+          ) : (
+            /* Multi-Model Grid (6+ Models Cards Side-by-Side) */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {MODELS_DATA.map((m) => (
+                <div
+                  key={m.model}
+                  onClick={() => setSelectedModel(m.model)}
+                  className="bg-[#181a24] border border-slate-700/60 hover:border-blue-500/70 rounded-xl p-4 shadow-lg flex flex-col justify-between transition-all duration-200 cursor-pointer group hover:scale-[1.015]"
+                >
+                  {/* Card Header: Model Name & Stage */}
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: m.color }}
+                      />
+                      <h3 className="text-xs font-black text-white group-hover:text-blue-400 transition-colors">
+                        {m.fullName}
+                      </h3>
+                    </div>
                     <span
-                      className={`text-[9.5px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                        d.category === 'Process'
-                          ? 'bg-rose-500/20 text-rose-300'
-                          : d.category === 'Equipment'
-                          ? 'bg-blue-500/20 text-blue-300'
-                          : 'bg-emerald-500/20 text-emerald-300'
+                      className={`text-[9.5px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                        m.status === 'Optimal'
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                       }`}
                     >
+                      {m.status}
+                    </span>
+                  </div>
+
+                  {/* 4 Combined Metrics (Yield, CUM, Input, WIP) */}
+                  <div className="grid grid-cols-2 gap-2.5 my-3 text-xs">
+                    {/* Shift Yield */}
+                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">Shift Yield</span>
+                      <div className="text-base font-black text-white mt-0.5">
+                        {m.dailyYield}%
+                      </div>
+                      <span className="text-[9.5px] text-slate-400 font-mono">
+                        Target {m.targetYield}%
+                      </span>
+                    </div>
+
+                    {/* Yield CUM */}
+                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">Yield CUM</span>
+                      <div className="text-base font-black text-blue-300 mt-0.5">
+                        {m.yieldCUM}%
+                      </div>
+                      <span className="text-[9.5px] text-emerald-400 font-semibold">
+                        Sustaining
+                      </span>
+                    </div>
+
+                    {/* Input Qty */}
+                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">Input Qty</span>
+                      <div className="text-base font-black text-slate-100 mt-0.5 font-mono">
+                        {m.inputQty.toLocaleString()}
+                      </div>
+                      <span className="text-[9.5px] text-slate-400 font-mono">
+                        Pass: {m.plusUnits} | Fail: {m.minusUnits}
+                      </span>
+                    </div>
+
+                    {/* WIP / Bonepile */}
+                    <div className="p-2 rounded-lg bg-[#12141c] border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">WIP / Bonepile</span>
+                      <div className="text-base font-black text-amber-400 mt-0.5 font-mono">
+                        {m.wipUnits} units
+                      </div>
+                      <span className="text-[9.5px] text-slate-400 font-mono">
+                        &lt;24h: {m.wipAgingFresh} · &gt;48h: {m.wipAgingEscalated}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Top Defect & Mini Action */}
+                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10.5px]">
+                    <span className="text-slate-400 truncate max-w-[200px]" title={m.topDefect}>
+                      Top: <strong className="text-slate-300">{m.topDefect}</strong>
+                    </span>
+                    <span className="text-blue-400 font-semibold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                      <span>Zoom</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* VIEW MODE 2: BY CATEGORY (Grouped across all 6 models)                    */}
+      {/* ------------------------------------------------------------------------- */}
+      {viewMode === 'byCategory' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Card 1: ALL MODELS YIELD & YIELD CUM COMPARISON */}
+          <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-4 shadow-lg space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Yield &amp; Yield CUM by Model
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                Fleet Avg: {totalFleetStats.yieldAvg}%
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              {MODELS_DATA.map((m) => (
+                <div key={m.model} className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
+                    <span className="font-bold text-white font-mono">{m.model}</span>
+                    <span className="text-[10px] text-slate-400">({m.stage})</span>
+                  </div>
+                  <div className="flex items-center gap-4 font-mono">
+                    <span className="text-slate-300">
+                      Shift: <strong className="text-white">{m.dailyYield}%</strong>
+                    </span>
+                    <span className="text-blue-300">
+                      CUM: <strong>{m.yieldCUM}%</strong>
+                    </span>
+                    <span
+                      className={`text-[9.5px] px-1.5 py-0.5 rounded font-bold ${
+                        m.dailyYield >= m.targetYield
+                          ? 'bg-emerald-500/20 text-emerald-300'
+                          : 'bg-amber-500/20 text-amber-300'
+                      }`}
+                    >
+                      {m.dailyYield >= m.targetYield ? 'PASS' : 'LAG'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Card 2: ALL MODELS WIP & BONEPILE DISTRIBUTION */}
+          <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-4 shadow-lg space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  WIP &amp; Bonepile Units by Model
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
+                Total WIP: {totalFleetStats.wip} units
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              {MODELS_DATA.map((m) => (
+                <div key={m.model} className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
+                    <span className="font-bold text-white font-mono">{m.model}</span>
+                    <span className="text-[10px] text-slate-400">WIP Backlog</span>
+                  </div>
+                  <div className="flex items-center gap-4 font-mono text-xs">
+                    <span className="text-amber-400 font-bold">{m.wipUnits} units</span>
+                    <span className="text-slate-400 text-[10px]">
+                      &lt;24h: <strong className="text-slate-200">{m.wipAgingFresh}</strong> | 24-48h: <strong className="text-slate-200">{m.wipAgingTriage}</strong> | &gt;48h: <strong className="text-rose-400">{m.wipAgingEscalated}</strong>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Card 3: ALL MODELS INPUT & THROUGHPUT (Plus vs Minus) */}
+          <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-4 shadow-lg space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+              <div className="flex items-center gap-2">
+                <Box className="w-4 h-4 text-blue-400" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Input Qty &amp; Throughput by Model
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-slate-300">
+                Total Input: {totalFleetStats.input.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              {MODELS_DATA.map((m) => (
+                <div key={m.model} className="p-2.5 rounded-lg bg-[#12141c] border border-slate-800">
+                  <div className="flex items-center justify-between mb-1 font-mono">
+                    <span className="font-bold text-white flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                      <span>{m.model}</span>
+                    </span>
+                    <span className="text-slate-300">
+                      Input: <strong className="text-white">{m.inputQty}</strong> (Pass: <span className="text-emerald-400">{m.plusUnits}</span> | Fallout: <span className="text-rose-400">{m.minusUnits}</span>)
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden flex">
+                    <div style={{ width: `${(m.plusUnits / m.inputQty) * 100}%` }} className="h-full bg-emerald-500" />
+                    <div style={{ width: `${(m.minusUnits / m.inputQty) * 100}%` }} className="h-full bg-rose-500" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Card 4: DEFECT PARETO (TOP FAILURES) */}
+          <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-4 shadow-lg space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
+              <div className="flex items-center gap-2">
+                <AlertOctagon className="w-4 h-4 text-rose-400" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Top Failures &amp; Root Causes
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                370 Defect Units
+              </span>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              {TOP_DEFECTS.slice(0, 5).map((d, idx) => (
+                <div key={d.id} className="p-2 rounded-lg bg-[#12141c] border border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2 truncate max-w-[240px]">
+                    <span className="text-slate-400 font-mono text-[10px]">#{idx + 1}</span>
+                    <span className="text-white font-medium truncate" title={d.code}>{d.code}</span>
+                  </div>
+                  <div className="flex items-center gap-2 font-mono">
+                    <span className="text-slate-300 font-bold">{d.count} u</span>
+                    <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300">
                       {d.category}
                     </span>
                   </div>
                 </div>
-
-                {/* Dual Bar: Defect % Bar with Cumulative Pareto Indicator */}
-                <div className="w-full h-2 rounded-full bg-[#12141c] overflow-hidden flex items-center">
-                  <div
-                    style={{ width: `${d.pct * 2.8}%` }}
-                    className={`h-full rounded-full transition-all duration-700 ${
-                      index === 0
-                        ? 'bg-gradient-to-r from-rose-500 to-amber-500'
-                        : index === 1
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-500'
-                        : 'bg-blue-500'
-                    }`}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Station Fallout Density (Col 4) */}
-        <div className="lg:col-span-4 bg-[#181a24] border border-slate-700/60 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-purple-400" />
-              <span>Station Fallout Distribution</span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Top stations reporting defect scrap.</p>
-
-            <div className="space-y-3 mt-4 text-xs">
-              {[
-                { station: 'FATP-QT-1M', desc: 'Quick Test 1M', defects: 126, pct: 34, color: 'bg-rose-500' },
-                { station: 'FATP-DS-COMBO', desc: 'Display / Precal Combo', defects: 118, pct: 32, color: 'bg-blue-500' },
-                { station: 'FATP-AIRLK-WT', desc: 'Airlock Water Resistance', defects: 56, pct: 15, color: 'bg-amber-500' },
-                { station: 'FATP-RF-CELL', desc: 'Wireless RF Cellular Call', defects: 38, pct: 10, color: 'bg-purple-500' },
-                { station: 'SMT-SPI-AOI', desc: 'Surface Mount Optical', defects: 32, pct: 9, color: 'bg-emerald-500' },
-              ].map((s) => (
-                <div key={s.station} className="p-2.5 rounded-xl bg-[#12141c] border border-slate-700/60">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-white">{s.station}</span>
-                    <span className="font-mono text-slate-300 font-bold">{s.defects} units ({s.pct}%)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10.5px] text-slate-400 mt-1">
-                    <span>{s.desc}</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-800 mt-2 overflow-hidden">
-                    <div style={{ width: `${s.pct}%` }} className={`h-full ${s.color} rounded-full`} />
-                  </div>
-                </div>
               ))}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* 5. ROW 3: BONEPILE & WIP DEFECT INVENTORY MANAGEMENT HUB */}
+      {/* 3. ROW: YIELD TRENDING CHARTS & MULTI-MODEL RUN CHART                     */}
       {/* ========================================================================= */}
-      <div className="bg-[#181a24] border border-slate-700/60 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-700/60">
+      <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-4 sm:p-5 shadow-lg space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-700/60">
           <div>
-            <div className="flex items-center gap-2">
-              <Wrench className="w-4.5 h-4.5 text-amber-400" />
-              <h3 className="text-base font-bold text-white tracking-tight">
-                Bonepile & WIP Defect Management Hub
-              </h3>
-              <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
-                {agingStats.total} Total Units In Queue
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Defective units triage, Failure Analysis (FA) DRI routing, repair aging tracking and accessory locks.
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-blue-400" />
+              <span>Sustaining Yield Trend Run Chart (8/1 – 8/8)</span>
+            </h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Historical yield trajectory across shifts with target baseline (98.50%).
             </p>
           </div>
 
-          {/* Bonepile Aging Histogram Badges */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#12141c] border border-emerald-500/30 text-emerald-400">
-              <Clock className="w-3.5 h-3.5" />
-              <span>&lt; 24h: <strong>{agingStats.fresh}</strong></span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#12141c] border border-blue-500/30 text-blue-400">
-              <Clock className="w-3.5 h-3.5" />
-              <span>24–48h: <strong>{agingStats.triage}</strong></span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#12141c] border border-amber-500/30 text-amber-400">
-              <Clock className="w-3.5 h-3.5" />
-              <span>48h–7d: <strong>{agingStats.escalated}</strong></span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-400 font-bold">
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
-              <span>&gt; 7d (Overdue): {agingStats.criticalOverdue}</span>
-            </div>
+          {/* Model Legend */}
+          <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
+            <span className="flex items-center gap-1.5 text-blue-400">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              <span>4CS4</span>
+            </span>
+            <span className="flex items-center gap-1.5 text-amber-400">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+              <span>CGY4</span>
+            </span>
+            <span className="flex items-center gap-1.5 text-purple-400">
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+              <span>PKK4</span>
+            </span>
+            <span className="flex items-center gap-1.5 text-rose-400 text-[10.5px]">
+              <span className="w-3 border-t-2 border-dashed border-rose-500" />
+              <span>Target 98.5%</span>
+            </span>
           </div>
         </div>
 
-        {/* Filter Bar & Search */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Status Tab Filters */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {[
-              { id: 'ALL', label: 'All Units' },
-              { id: 'Pending FA', label: 'Pending FA' },
-              { id: 'Under Repair', label: 'Under Repair' },
-              { id: 'Awaiting Parts', label: 'Awaiting Parts' },
-              { id: 'Retest Pass', label: 'Retest Pass' },
-              { id: 'Quality Locked', label: 'Quality Locked' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSelectedBonepileStatus(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedBonepileStatus === tab.id
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-[#12141c] border border-slate-700/60 text-slate-300 hover:text-white hover:border-slate-500'
-                }`}
-              >
-                {tab.label}
-              </button>
+        {/* SVG Multi-Line Chart */}
+        <div className="relative h-48 w-full mt-2">
+          <svg className="w-full h-full overflow-visible" viewBox="0 0 700 180" preserveAspectRatio="none">
+            {/* Grid lines */}
+            {[30, 65, 100, 135].map((y, idx) => (
+              <line key={idx} x1="0" y1={y} x2="700" y2={y} stroke="#282f42" strokeDasharray="4 4" strokeWidth="1" />
+            ))}
+
+            {/* Target 98.5% Line */}
+            <line x1="0" y1="75" x2="700" y2="75" stroke="#e11d48" strokeDasharray="6 4" strokeWidth="1.5" />
+
+            {/* 4CS4 Line (Blue) */}
+            <path d="M 50,78 L 135,68 L 220,58 L 305,54 L 390,62 L 475,45 L 560,50 L 645,38" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" />
+
+            {/* CGY4 Line (Amber) */}
+            <path d="M 50,150 L 135,138 L 220,144 L 305,158 L 390,120 L 475,98 L 560,85 L 645,78" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+
+            {/* PKK4 Line (Purple) */}
+            <path d="M 50,118 L 135,110 L 220,100 L 305,106 L 390,90 L 475,80 L 560,86 L 645,74" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" />
+
+            {/* Interactive Data Dots */}
+            {YIELD_TREND_DAYS.map((d, i) => {
+              const cx = 50 + i * 85;
+              return (
+                <g key={i} className="cursor-pointer group" onMouseEnter={() => setHoveredTrendDay(d)}>
+                  <circle cx={cx} cy={[78, 68, 58, 54, 62, 45, 50, 38][i]} r="4.5" fill="#3b82f6" stroke="#ffffff" strokeWidth="1.5" className="transition-transform group-hover:scale-150" />
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* X Axis Labels */}
+          <div className="flex justify-between px-6 text-[11px] text-slate-400 font-mono pt-1 border-t border-slate-700/60">
+            {YIELD_TREND_DAYS.map((d) => (
+              <span key={d.date} className={`cursor-pointer ${hoveredTrendDay?.date === d.date ? 'text-blue-400 font-bold' : ''}`}>
+                {d.date}
+              </span>
             ))}
           </div>
+        </div>
 
-          {/* DSN Search Input */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
-            <input
-              type="text"
-              value={bonepileSearch}
-              onChange={(e) => setBonepileSearch(e.target.value)}
-              placeholder="Search DSN, station, DRI..."
-              className="w-full pl-9 pr-3 py-1.5 bg-[#12141c] border border-slate-700/70 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
-            />
+        {/* Hovered Date Stats */}
+        {hoveredTrendDay && (
+          <div className="p-2 rounded-lg bg-[#12141c] border border-blue-500/40 flex items-center justify-between text-xs font-mono">
+            <span className="text-slate-300">
+              Date: <strong className="text-white">{hoveredTrendDay.date}</strong> | Plus: <strong className="text-emerald-400">{hoveredTrendDay.plus}</strong> | Minus: <strong className="text-rose-400">{hoveredTrendDay.minus}</strong>
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-blue-400 font-bold">4CS4: {hoveredTrendDay.yield4CS4}%</span>
+              <span className="text-amber-400 font-bold">CGY4: {hoveredTrendDay.yieldCGY4}%</span>
+              <span className="text-purple-400 font-bold">PKK4: {hoveredTrendDay.yieldPKK4}%</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. ROW: BONEPILE & WIP DEFECT INVENTORY TABLE                             */}
+      {/* ========================================================================= */}
+      <div className="bg-[#181a24] border border-slate-700/60 rounded-xl p-4 sm:p-5 shadow-lg space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-700/60">
+          <div className="flex items-center gap-2">
+            <Wrench className="w-4 h-4 text-amber-400" />
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              Bonepile &amp; WIP Inventory
+            </h3>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+              {filteredBonepile.length} units listed
+            </span>
+          </div>
+
+          {/* Search bar & Status Filter */}
+          <div className="flex items-center gap-2">
+            <div className="relative w-48 sm:w-56">
+              <Search className="w-3 h-3 absolute left-2.5 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                value={bonepileSearch}
+                onChange={(e) => setBonepileSearch(e.target.value)}
+                placeholder="Search DSN, model, station..."
+                className="w-full pl-8 pr-2.5 py-1 text-xs bg-[#12141c] border border-slate-700/70 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Bonepile DSN Data Table */}
-        <div className="overflow-x-auto rounded-xl border border-slate-700/60 bg-[#12141c]">
+        {/* Bonepile Table */}
+        <div className="overflow-x-auto rounded-lg border border-slate-700/60 bg-[#12141c]">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-[#1c202e] text-slate-300 border-b border-slate-700/60 font-semibold">
-                <th className="py-2.5 px-3">Device Serial Number (DSN)</th>
-                <th className="py-2.5 px-3">Model</th>
-                <th className="py-2.5 px-3">Fail Station</th>
-                <th className="py-2.5 px-3">Failure Symptom / Cause</th>
-                <th className="py-2.5 px-3">FA DRI</th>
-                <th className="py-2.5 px-3">Aging</th>
-                <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3">Lock Status</th>
-                <th className="py-2.5 px-3 text-right">Actions</th>
+              <tr className="bg-[#1c202e] text-slate-300 border-b border-slate-700/60 font-semibold text-[11px]">
+                <th className="py-2 px-3">DSN</th>
+                <th className="py-2 px-3">Model</th>
+                <th className="py-2 px-3">Station</th>
+                <th className="py-2 px-3">Failure Description</th>
+                <th className="py-2 px-3">DRI</th>
+                <th className="py-2 px-3">Aging</th>
+                <th className="py-2 px-3">Status</th>
+                <th className="py-2 px-3">Lock</th>
+                <th className="py-2 px-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-200">
               {filteredBonepile.map((row) => (
                 <tr key={row.dsn} className="hover:bg-slate-800/40 transition-colors">
-                  <td className="py-2.5 px-3 font-mono font-bold text-blue-300">
-                    {row.dsn}
-                  </td>
-                  <td className="py-2.5 px-3">
-                    <span className="font-semibold text-white">{row.model}</span>
-                  </td>
-                  <td className="py-2.5 px-3 font-mono text-[11px] text-slate-300">
-                    {row.station}
-                  </td>
-                  <td className="py-2.5 px-3 max-w-xs truncate text-slate-200" title={row.defectDesc}>
-                    {row.defectDesc}
-                  </td>
-                  <td className="py-2.5 px-3 font-medium text-slate-300">
-                    {row.dri}
-                  </td>
-                  <td className="py-2.5 px-3">
-                    <span
-                      className={`font-mono text-[11px] px-2 py-0.5 rounded font-bold ${
-                        row.agingHours <= 24
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : row.agingHours <= 48
-                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                          : row.agingHours <= 168
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                      }`}
-                    >
+                  <td className="py-2 px-3 font-mono font-bold text-blue-300">{row.dsn}</td>
+                  <td className="py-2 px-3 font-semibold text-white">{row.model}</td>
+                  <td className="py-2 px-3 font-mono text-[11px] text-slate-300">{row.station}</td>
+                  <td className="py-2 px-3 max-w-xs truncate text-slate-200" title={row.defectDesc}>{row.defectDesc}</td>
+                  <td className="py-2 px-3 font-medium text-slate-300">{row.dri}</td>
+                  <td className="py-2 px-3 font-mono text-[10.5px]">
+                    <span className={`px-1.5 py-0.5 rounded font-bold ${row.agingHours <= 24 ? 'text-emerald-400 bg-emerald-500/10' : row.agingHours <= 48 ? 'text-blue-400 bg-blue-500/10' : 'text-rose-400 bg-rose-500/20'}`}>
                       {row.agingHours}h
                     </span>
                   </td>
-                  <td className="py-2.5 px-3">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
-                        row.status === 'Retest Pass'
-                          ? 'bg-emerald-500/20 text-emerald-300'
-                          : row.status === 'Quality Locked'
-                          ? 'bg-rose-500/20 text-rose-300'
-                          : row.status === 'Awaiting Parts'
-                          ? 'bg-amber-500/20 text-amber-300'
-                          : 'bg-blue-500/20 text-blue-300'
-                      }`}
-                    >
+                  <td className="py-2 px-3">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-slate-800 text-slate-300">
                       {row.status}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3">
+                  <td className="py-2 px-3">
                     {row.isLocked ? (
-                      <span className="flex items-center gap-1 text-[10.5px] text-rose-400 font-bold" title={row.lockReason}>
-                        <Lock className="w-3 h-3 text-rose-400" />
-                        <span>Locked</span>
+                      <span className="text-[10px] text-rose-400 font-bold flex items-center gap-1" title={row.lockReason}>
+                        <Lock className="w-2.5 h-2.5" /> Locked
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-[10.5px] text-slate-400">
-                        <Unlock className="w-3 h-3 text-slate-500" />
-                        <span>Normal</span>
+                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                        <Unlock className="w-2.5 h-2.5 text-slate-500" /> Normal
                       </span>
                     )}
                   </td>
-                  <td className="py-2.5 px-3 text-right">
+                  <td className="py-2 px-3 text-right">
                     <button
                       type="button"
-                      onClick={() => onOpenChat(`Check Failure Analysis and disposition recommendations for unit DSN ${row.dsn} at station ${row.station}`)}
-                      className="px-2 py-1 bg-[#222736] hover:bg-blue-600 hover:text-white text-blue-300 rounded text-[10.5px] font-semibold transition-colors cursor-pointer"
-                      title="Analyze this unit with Copilot AI"
+                      onClick={() => onOpenChat(`Check disposition history for unit DSN ${row.dsn} model ${row.model} at station ${row.station}`)}
+                      className="px-2 py-0.5 bg-[#222736] hover:bg-blue-600 text-blue-300 hover:text-white rounded text-[10px] font-semibold transition-colors cursor-pointer"
                     >
                       Ask AI
                     </button>
@@ -1001,4 +936,3 @@ export const CelestialSmartFactoryDashboard: React.FC<CelestialSmartFactoryDashb
     </div>
   );
 };
-
