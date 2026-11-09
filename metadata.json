@@ -1,0 +1,6 @@
+{
+  "name": "App Studio & Engineering Showcase",
+  "description": "An interactive capability explorer and live prototype workspace demonstrating software solutions, interactive apps, and data systems that can be built.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
