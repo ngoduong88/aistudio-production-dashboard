@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, X, Minimize2, Maximize2, RefreshCw, AlertCircle, Zap, Clock, Table, Database } from 'lucide-react';
+import { Send, Bot, User, Sparkles, X, Minimize2, Maximize2, RefreshCw, AlertCircle, Zap } from 'lucide-react';
 import { ChatMessage, ProductionRecord, ProductionKPIs } from '../types';
 
 interface ProductionChatbotProps {
@@ -14,16 +14,14 @@ interface ProductionChatbotProps {
 const INITIAL_GREETING: ChatMessage = {
   id: 'msg-0',
   role: 'model',
-  content: `Hello! I am your **Foxconn FIH Production Line Operations AI Copilot**. I have loaded and indexed the active factory spreadsheet **[INTERNAL] P26 MIL 0518** (Sheet **'4CS4'** - *Sustaining Yield VN*).\n\n⚡ **Auto-Analysis (No Explanation Needed)**:\n- Paste any **Google Sheet link** or click **"Auto-Analyze Sheet"** below. I will autonomously reverse-engineer the entire dataset, decode what every number and abbreviation means (Plus, Minus, CRB, Sustaining Yield, models, shifts), and surface key anomalies without you having to explain a single number!\n\n⚡ **Speed & Cell Testing Mode**:\n- Say **"Test"** to benchmark retrieval latency from cell **\`BW69\`** in file \`[INTERNAL] P26 MIL 0518\`.\n- Or type **\`Get cell AW69\`**, **\`cell AV69\`**, or **\`cell AZ69\`** to query any exact cell or range in real time!`,
+  content: `Hello! I am your **Foxconn FIH Production Line Operations AI Copilot**. I have loaded and indexed the active factory spreadsheet **[INTERNAL] P26 MIL 0518** (Sheet **'4CS4'** - *Sustaining Yield VN*).\n\n⚡ **Auto-Analysis & Insights**:\n- Click **"Auto analyze sheet"** or ask any production question to analyze yield, output, and anomalies across lines and shifts.\n- Type **"Test"** anytime to check the AI response and live latency.`,
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   latencyMs: 0.3,
 };
 
 const SUGGESTED_QUERIES = [
-  'Auto analyze sheet (decipher numbers)',
   'Test',
-  'Get cell AW69',
-  'Get cell AV69',
+  'Auto analyze sheet (decipher numbers)',
   'Summarize today\'s overall production line performance',
   'Which line has the lowest yield and what is the root cause?',
 ];
@@ -41,10 +39,10 @@ function renderFormattedContent(text: string) {
     const dataRows = tableRows.slice(1).filter((r) => !r.every((c) => /^[:\-\s]+$/.test(c)));
 
     const tableEl = (
-      <div key={key} className="my-2.5 overflow-x-auto rounded-lg border border-slate-700/60 bg-[#161822]">
+      <div key={key} className="my-2.5 overflow-x-auto rounded-lg border border-slate-600/60 bg-[#1e2334]">
         <table className="w-full text-left text-[11px] border-collapse">
           <thead>
-            <tr className="bg-[#20232e] text-slate-300 border-b border-slate-700/60">
+            <tr className="bg-[#2d344d] text-slate-200 border-b border-slate-600/60">
               {headerRow.map((h, i) => (
                 <th key={i} className="py-1.5 px-2.5 font-semibold">
                   {formatInline(h.trim())}
@@ -52,9 +50,9 @@ function renderFormattedContent(text: string) {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 text-slate-200">
+          <tbody className="divide-y divide-slate-700/60 text-slate-100">
             {dataRows.map((row, rIdx) => (
-              <tr key={rIdx} className="hover:bg-slate-800/40 transition-colors">
+              <tr key={rIdx} className="hover:bg-slate-700/30 transition-colors">
                 {row.map((col, cIdx) => (
                   <td key={cIdx} className="py-1.5 px-2.5">
                     {formatInline(col.trim())}
@@ -160,14 +158,9 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_GREETING]);
   const [input, setInput] = useState('');
-  const [cellTestInput, setCellTestInput] = useState('BW69');
   const [loading, setLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
-  const [lastBenchmark, setLastBenchmark] = useState<{ cell: string; latencyMs: number } | null>({
-    cell: 'BW69',
-    latencyMs: 0.31,
-  });
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -245,13 +238,6 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
       const data = await response.json();
       const reportedLatency = data.latencyMs ?? clientElapsedMs;
 
-      if (prompt.toLowerCase().includes('test') || prompt.toLowerCase().includes('cell')) {
-        setLastBenchmark({
-          cell: data.cell || 'BW69',
-          latencyMs: reportedLatency,
-        });
-      }
-
       const botMsg: ChatMessage = {
         id: `bot-${Date.now()}`,
         role: 'model',
@@ -285,27 +271,27 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
 
   return (
     <aside
-      className={`fixed z-50 transition-all duration-200 flex flex-col bg-[#161822] text-slate-200 border border-[#2e3242] shadow-2xl rounded-2xl overflow-hidden ${
+      className={`fixed z-50 transition-all duration-200 flex flex-col bg-[#1e2333] text-slate-100 border-2 border-slate-600/70 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.85)] ring-1 ring-white/10 rounded-2xl overflow-hidden ${
         isExpanded
           ? 'inset-4 md:inset-10'
           : 'bottom-4 right-4 sm:right-6 w-[94vw] sm:w-[480px] h-[670px] max-h-[90vh]'
       }`}
     >
       {/* Header */}
-      <div className="px-4 py-3 bg-[#1a1d28] text-white flex items-center justify-between border-b border-[#2a2e3d]">
+      <div className="px-4 py-3 bg-[#2a3147] text-white flex items-center justify-between border-b border-slate-600/60 shadow-xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-xs">
+          <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-300 shadow-xs">
             <Bot className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs font-bold tracking-tight flex items-center gap-2">
+            <h3 className="text-xs font-bold tracking-tight flex items-center gap-2 text-white">
               <span>Foxconn AI Operations Copilot</span>
-              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-semibold">
                 P26 Indexed
               </span>
             </h3>
-            <p className="text-[10px] text-slate-400">
-              File: <span className="text-slate-300 font-mono">[INTERNAL] P26 MIL 0518</span> (Sheet: '4CS4')
+            <p className="text-[10px] text-slate-300">
+              File: <span className="text-white font-mono font-medium">[INTERNAL] P26 MIL 0518</span> (Sheet: '4CS4')
             </p>
           </div>
         </div>
@@ -314,7 +300,7 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
           <button
             type="button"
             onClick={clearChat}
-            className="p-1.5 text-slate-400 hover:text-white rounded-md transition-colors cursor-pointer"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors cursor-pointer"
             title="Reset conversation"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -322,7 +308,7 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1.5 text-slate-400 hover:text-white rounded-md transition-colors cursor-pointer"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors cursor-pointer"
             title={isExpanded ? 'Collapse' : 'Expand full-screen'}
           >
             {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -330,7 +316,7 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-md transition-colors cursor-pointer"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors cursor-pointer"
             title="Close Assistant"
           >
             <X className="w-4 h-4" />
@@ -338,91 +324,30 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
         </div>
       </div>
 
-      {/* Speed & Latency Benchmark Action Bar */}
-      <div className="px-3 py-2 bg-[#1c1f2c] border-b border-[#2a2e3d] flex flex-col gap-1.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">
-            <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>Spreadsheet Speed Benchmark</span>
-          </div>
-          {lastBenchmark && (
-            <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-              <Clock className="w-3 h-3" />
-              <span>Cell {lastBenchmark.cell}: {lastBenchmark.latencyMs} ms</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          {/* Main "Test" button */}
-          <button
-            type="button"
-            onClick={() => handleSendMessage('Test')}
-            disabled={loading}
-            className="flex-1 py-1.5 px-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 disabled:opacity-50 text-slate-950 font-bold rounded-lg text-[11px] flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
-          >
-            <Zap className="w-3.5 h-3.5 fill-slate-950" />
-            <span>⚡ Test Cell BW69</span>
-          </button>
-
-          {/* Auto-Analyze Button */}
-          <button
-            type="button"
-            onClick={() => handleSendMessage('Auto analyze sheet (decipher numbers)')}
-            disabled={loading}
-            className="py-1.5 px-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold rounded-lg text-[10.5px] flex items-center justify-center gap-1 shadow-sm transition-all cursor-pointer"
-            title="Auto-decode sheet without user explanation"
-          >
-            <Sparkles className="w-3 h-3 text-amber-300" />
-            <span>Decode Sheet</span>
-          </button>
-
-          {/* Arbitrary cell tester */}
-          <div className="flex items-center gap-1 bg-[#12141c] border border-[#2e3242] rounded-lg px-1.5 py-0.5">
-            <span className="text-[10px] text-slate-400 font-mono">Cell:</span>
-            <input
-              type="text"
-              value={cellTestInput}
-              onChange={(e) => setCellTestInput(e.target.value.toUpperCase())}
-              placeholder="BW69"
-              className="w-12 text-center font-mono text-[11px] text-amber-300 bg-transparent focus:outline-none uppercase font-bold"
-            />
-            <button
-              type="button"
-              onClick={() => handleSendMessage(`Get cell ${cellTestInput.trim() || 'BW69'}`)}
-              disabled={loading}
-              className="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
-            >
-              Check
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Suggested Quick Prompt Chips */}
-      <div className="px-3 py-1.5 bg-[#181a24] border-b border-[#242735] flex items-center gap-1.5 overflow-x-auto text-[10.5px] scrollbar-none">
-        <Sparkles className="w-3 h-3 text-blue-400 shrink-0 ml-0.5" />
+      <div className="px-3 py-2 bg-[#252b3e] border-b border-slate-600/50 flex items-center gap-1.5 overflow-x-auto text-[11px] scrollbar-none">
+        <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 ml-0.5" />
         {SUGGESTED_QUERIES.map((q, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => handleSendMessage(q)}
             disabled={loading}
-            className="whitespace-nowrap px-2 py-0.5 rounded-md bg-[#20232e] border border-[#2e3242] hover:border-blue-500 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+            className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-[#30374e] border border-slate-600/60 hover:border-blue-400 text-slate-200 hover:text-white font-medium transition-colors cursor-pointer shrink-0 disabled:opacity-50 text-[10.5px]"
           >
-            {q}
+            {q === 'Test' ? '⚡ Test' : q}
           </button>
         ))}
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 p-3.5 overflow-y-auto space-y-3.5 bg-[#12141c] text-xs">
+      <div className="flex-1 p-3.5 overflow-y-auto space-y-3.5 bg-[#181d2a] text-xs">
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           return (
             <div key={msg.id} className={`flex gap-2.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
               {!isUser && (
-                <div className="w-7 h-7 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 mt-0.5 shadow-xs">
+                <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-300 shrink-0 mt-0.5 shadow-xs">
                   <Bot className="w-3.5 h-3.5" />
                 </div>
               )}
@@ -431,7 +356,7 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
                 className={`max-w-[88%] rounded-xl p-3 leading-relaxed space-y-2 ${
                   isUser
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                    : 'bg-[#1a1d28] text-slate-200 border border-[#2c3040] shadow-sm'
+                    : 'bg-[#262c3e] text-slate-100 border border-slate-600/60 shadow-sm'
                 }`}
               >
                 {/* Content with markdown formatting */}
@@ -465,8 +390,8 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
         })}
 
         {loading && (
-          <div className="flex gap-2.5 items-center text-slate-400 text-xs pl-1">
-            <div className="w-6 h-6 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400 animate-pulse">
+          <div className="flex gap-2.5 items-center text-slate-300 text-xs pl-1">
+            <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300 animate-pulse">
               <Bot className="w-3.5 h-3.5" />
             </div>
             <div className="flex items-center gap-2">
@@ -492,15 +417,15 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
           e.preventDefault();
           handleSendMessage();
         }}
-        className="p-2.5 bg-[#181a24] border-t border-[#2a2e3d] flex items-center gap-2"
+        className="p-2.5 bg-[#252b3e] border-t border-slate-600/60 flex items-center gap-2"
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask AI or type 'Test' to benchmark cell BW69..."
+          placeholder="Ask AI or type 'Test' to check response..."
           disabled={loading}
-          className="flex-1 px-3.5 py-2 text-xs bg-[#12141c] border border-[#2e3242] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+          className="flex-1 px-3.5 py-2 text-xs bg-[#191d2a] border border-slate-600/70 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 disabled:opacity-50"
         />
         <button
           type="submit"

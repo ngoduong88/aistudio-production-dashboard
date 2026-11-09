@@ -172,11 +172,11 @@ export default function App() {
           <button
             type="button"
             onClick={() => setIsChatOpen(true)}
-            className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full font-semibold text-xs shadow-2xl flex items-center gap-2 transition-all cursor-pointer hover:scale-105 border border-blue-400/30"
+            className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full font-bold text-xs shadow-[0_10px_25px_-5px_rgba(59,130,246,0.6)] flex items-center gap-2.5 transition-all cursor-pointer hover:scale-105 border-2 border-white/30 ring-4 ring-blue-500/25"
           >
             <MessageSquare className="w-4 h-4 text-white" />
             <span>Ask Copilot AI</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse ring-2 ring-emerald-300/40" />
           </button>
         )}
       </div>
@@ -331,10 +331,11 @@ export default function App() {
         <button
           type="button"
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold text-xs shadow-xl flex items-center gap-2 transition-all cursor-pointer hover:scale-105"
+          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full font-bold text-xs shadow-[0_10px_25px_-5px_rgba(59,130,246,0.6)] flex items-center gap-2.5 transition-all cursor-pointer hover:scale-105 border-2 border-white/30 ring-4 ring-blue-500/25"
         >
-          <MessageSquare className="w-4 h-4" />
+          <MessageSquare className="w-4 h-4 text-white" />
           <span>Ask Copilot AI</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse ring-2 ring-emerald-300/40" />
         </button>
       )}
 
