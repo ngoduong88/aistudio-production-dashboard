@@ -505,7 +505,10 @@ CRITICAL INSTRUCTIONS:
 2. When answering, cite exact numbers (e.g. "SMT-02 had 42 minutes of downtime due to Solder Paste Stencil Clogging during Shift 1").
 3. When discussing defects (e.g., Solder Bridging, Tombstoning, Misalignment, Cold Solder, Missing Component, Scratch), provide clear engineering root cause analysis and practical countermeasures.
 4. Keep answers professional, structured, and actionable for manufacturing managers, line leaders, and quality engineers. Use clear bullet points, bold key metrics, and markdown tables where comparing multiple lines or shifts.
-5. If the user asks for a recommendation or troubleshooting advice, outline step-by-step Standard Operating Procedures (SOPs).`;
+5. If the user asks for a recommendation or troubleshooting advice, outline step-by-step Standard Operating Procedures (SOPs).
+6. For AOI inspection setup requests, collect three Google Drive folders: OK reference samples, NG reference samples, and images awaiting inspection.
+7. Also collect the inspection area, NG defect categories, and explicit rules. Do not claim that an image was inspected until image access and vision analysis are actually connected.
+8. Confirm the collected AOI setup in a concise structured summary and identify any missing folder or inspection-rule information.`;
 
     const formattedContents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
 

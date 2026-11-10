@@ -22,9 +22,19 @@ const INITIAL_GREETING: ChatMessage = {
 const SUGGESTED_QUERIES = [
   'Test',
   'Auto analyze sheet (decipher numbers)',
+  'AOI inspection setup',
   'Summarize today\'s overall production line performance',
   'Which line has the lowest yield and what is the root cause?',
 ];
+
+const AOI_SETUP_TEMPLATE = `AOI inspection setup
+
+OK samples folder: paste Google Drive folder link
+NG samples folder: paste Google Drive folder link
+Inspection images folder: paste Google Drive folder link
+Area to inspect: e.g. USB connector / U2301 / all visible PCB
+NG categories: e.g. missing component, shifted component, wrong orientation, solder bridge
+Additional rules: e.g. ignore background and watermark; compare only the selected area`;
 
 // Helper to format markdown text and tables cleanly
 function renderFormattedContent(text: string) {
@@ -331,7 +341,7 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
           <button
             key={idx}
             type="button"
-            onClick={() => handleSendMessage(q)}
+            onClick={() => handleSendMessage(q === 'AOI inspection setup' ? AOI_SETUP_TEMPLATE : q)}
             disabled={loading}
             className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-[#30374e] border border-slate-600/60 hover:border-blue-400 text-slate-200 hover:text-white font-medium transition-colors cursor-pointer shrink-0 disabled:opacity-50 text-[10.5px]"
           >
