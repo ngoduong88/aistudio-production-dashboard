@@ -427,6 +427,23 @@ app.post('/api/production/chat', async (req, res) => {
 
     if (isAoiSetupIntent) {
       const totalElapsedMs = Math.round((performance.now() - requestStartTime) * 100) / 100;
+      const hasSpreadsheetLink = /https:\/\/docs\.google\.com\/spreadsheets\/d\/[a-zA-Z0-9-_]+/i.test(trimmedMsg);
+      const isTemplateOnly =
+        normalizedMsg.includes('paste google sheets') ||
+        normalizedMsg.includes('paste the google sheets') ||
+        normalizedMsg.includes('paste the google sheets workbook link');
+
+      if (hasSpreadsheetLink && !isTemplateOnly) {
+        return res.json({
+          reply: `### AOI setup details received
+
+I received the workbook link, the three sheet names, the column mapping, and your inspection rules. This is now configured as an **AOI image-inspection request**, not a production-yield question.
+
+The next implementation step is to connect image access and Google Sheets write authorization. Until those connections are available, I will not claim that the images were inspected or that Column C was updated.`,
+          latencyMs: totalElapsedMs,
+        });
+      }
+
       return res.json({
         reply: `### AOI inspection setup received
 
