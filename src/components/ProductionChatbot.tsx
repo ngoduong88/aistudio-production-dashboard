@@ -243,12 +243,25 @@ export const ProductionChatbot: React.FC<ProductionChatbotProps> = ({
 
       const clientElapsedMs = Math.round((performance.now() - clientStartTime) * 100) / 100;
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `Server returned error status ${response.status}`);
+      // Read the body as text first. If the API route is unavailable, Vite or
+      // the hosting layer may return its HTML index page, which previously
+      // caused the confusing "Unexpected token '<'" JSON error.
+      const responseBody = await response.text();
+      let data: { reply?: string; latencyMs?: number; error?: string } = {};
+      try {
+        data = responseBody ? JSON.parse(responseBody) : {};
+      } catch {
+        const contentType = response.headers.get('content-type') || 'unknown';
+        throw new Error(
+          responseBody.trimStart().startsWith('<!doctype') || responseBody.trimStart().startsWith('<')
+            ? 'The AI chat API returned an HTML page instead of JSON. Please restart or redeploy the AI Studio server so /api/production/chat is available.'
+            : `The AI chat API returned an invalid response (${contentType}).`,
+        );
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || `Server returned error status ${response.status}`);
+      }
       const reportedLatency = data.latencyMs ?? clientElapsedMs;
 
       const botMsg: ChatMessage = {
