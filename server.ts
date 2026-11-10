@@ -416,6 +416,34 @@ app.post('/api/production/chat', async (req, res) => {
       });
     }
 
+    // AOI setup is a guided workflow, not a production-yield question. Handle it
+    // before spreadsheet-link analysis so the setup chip cannot fall through to
+    // the generic Gemini production prompt and return an unrelated yield summary.
+    const normalizedMsg = trimmedMsg.toLowerCase();
+    const isAoiSetupIntent =
+      normalizedMsg.includes('aoi inspection setup') ||
+      (normalizedMsg.includes('ok samples') && normalizedMsg.includes('ng samples')) ||
+      (normalizedMsg.includes('inspection sheet') && normalizedMsg.includes('failure category'));
+
+    if (isAoiSetupIntent) {
+      const totalElapsedMs = Math.round((performance.now() - requestStartTime) * 100) / 100;
+      return res.json({
+        reply: `### AOI inspection setup received
+
+I understand this as an AOI image-inspection setup request, not a production-yield analysis.
+
+Please provide or confirm:
+1. **Google Sheets workbook link** (one workbook with all three tabs)
+2. **Tabs**: \`OK samples\`, \`NG samples\`, and \`AOI pictures for inspection\`
+3. **Columns**: A = SN, B = Drive link / AOI picture link, C = Remark / failure category
+4. **Area to inspect** (for example, USB connector, U2301, or the full visible PCB)
+5. **NG categories and inspection rules**
+
+The current chatbox can collect and confirm this setup. Image comparison and writing the inspection result back to the third tab will only be reported after image access and Google Sheets write authorization are connected.`,
+        latencyMs: totalElapsedMs,
+      });
+    }
+
     // 2. GOOGLE SHEET LINK DETECTED IN CHAT: Fetch and autonomously analyze without user explanation
     const gSheetMatch = trimmedMsg.match(/https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)[^\s]*/i);
     if (gSheetMatch) {
@@ -506,8 +534,8 @@ CRITICAL INSTRUCTIONS:
 3. When discussing defects (e.g., Solder Bridging, Tombstoning, Misalignment, Cold Solder, Missing Component, Scratch), provide clear engineering root cause analysis and practical countermeasures.
 4. Keep answers professional, structured, and actionable for manufacturing managers, line leaders, and quality engineers. Use clear bullet points, bold key metrics, and markdown tables where comparing multiple lines or shifts.
 5. If the user asks for a recommendation or troubleshooting advice, outline step-by-step Standard Operating Procedures (SOPs).
-6. For AOI inspection setup requests, collect one Google Sheets workbook link with three tabs: "OK samples", "NG samples", and "AOI pictures need inspection".
-7. Confirm that all tabs use the columns SN, AOI picture link, and failure category. Collect the inspection area, NG defect categories, and explicit rules.
+6. For AOI inspection setup requests, collect one Google Sheets workbook link with three tabs: "OK samples", "NG samples", and "AOI pictures for inspection". Accept "AOI pictures need inspection" as an equivalent older tab name.
+7. Confirm that all tabs use columns A=SN, B=Drive link / AOI picture link, and C=Remark / failure category. Collect the inspection area, NG defect categories, and explicit rules.
 8. Do not claim that an image was inspected until image access and vision analysis are actually connected. Do not claim that the third sheet was updated until write authorization is available and the write succeeds.
 9. Confirm the collected AOI setup in a concise structured summary and identify any missing sheet, image-link, rule, or write-authorization information.`;
 
