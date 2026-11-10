@@ -29,12 +29,15 @@ const SUGGESTED_QUERIES = [
 
 const AOI_SETUP_TEMPLATE = `AOI inspection setup
 
-OK samples folder: paste Google Drive folder link
-NG samples folder: paste Google Drive folder link
-Inspection images folder: paste Google Drive folder link
+Spreadsheet link: paste Google Sheets link
+OK sheet name: OK samples
+NG sheet name: NG samples
+Inspection sheet name: AOI pictures need inspection
+Shared columns: SN | AOI picture link | failure category
 Area to inspect: e.g. USB connector / U2301 / all visible PCB
 NG categories: e.g. missing component, shifted component, wrong orientation, solder bridge
-Additional rules: e.g. ignore background and watermark; compare only the selected area`;
+Additional rules: e.g. ignore background and watermark; compare only the selected area
+Write-back authorization: public edit access, Google OAuth, or configured Sheets write endpoint`;
 
 // Helper to format markdown text and tables cleanly
 function renderFormattedContent(text: string) {

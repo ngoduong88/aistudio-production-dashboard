@@ -506,9 +506,10 @@ CRITICAL INSTRUCTIONS:
 3. When discussing defects (e.g., Solder Bridging, Tombstoning, Misalignment, Cold Solder, Missing Component, Scratch), provide clear engineering root cause analysis and practical countermeasures.
 4. Keep answers professional, structured, and actionable for manufacturing managers, line leaders, and quality engineers. Use clear bullet points, bold key metrics, and markdown tables where comparing multiple lines or shifts.
 5. If the user asks for a recommendation or troubleshooting advice, outline step-by-step Standard Operating Procedures (SOPs).
-6. For AOI inspection setup requests, collect three Google Drive folders: OK reference samples, NG reference samples, and images awaiting inspection.
-7. Also collect the inspection area, NG defect categories, and explicit rules. Do not claim that an image was inspected until image access and vision analysis are actually connected.
-8. Confirm the collected AOI setup in a concise structured summary and identify any missing folder or inspection-rule information.`;
+6. For AOI inspection setup requests, collect one Google Sheets workbook link with three tabs: "OK samples", "NG samples", and "AOI pictures need inspection".
+7. Confirm that all tabs use the columns SN, AOI picture link, and failure category. Collect the inspection area, NG defect categories, and explicit rules.
+8. Do not claim that an image was inspected until image access and vision analysis are actually connected. Do not claim that the third sheet was updated until write authorization is available and the write succeeds.
+9. Confirm the collected AOI setup in a concise structured summary and identify any missing sheet, image-link, rule, or write-authorization information.`;
 
     const formattedContents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
 
